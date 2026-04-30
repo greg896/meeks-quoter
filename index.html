@@ -8,6 +8,60 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        /* ── FULL-APP LOGIN GATE ── */
+        #appGate {
+            position: fixed; inset: 0; z-index: 9000;
+            background: linear-gradient(135deg, #0a1628 0%, #1a365d 60%, #2a4a7f 100%);
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px;
+        }
+        #appGate.unlocked { display: none; }
+        .gate-box {
+            background: white; border-radius: 20px;
+            box-shadow: 0 32px 80px rgba(0,0,0,0.4);
+            width: 100%; max-width: 400px; overflow: hidden;
+        }
+        .gate-head {
+            background: linear-gradient(135deg, #0f2240 0%, #1a365d 100%);
+            padding: 36px 32px 28px; text-align: center; color: white;
+        }
+        .gate-logo {
+            width: 68px; height: 68px; background: #dd6b20;
+            border-radius: 16px; display: flex; align-items: center;
+            justify-content: center; font-size: 26px; font-weight: 900;
+            color: white; margin: 0 auto 16px;
+            box-shadow: 0 6px 20px rgba(221,107,32,0.45);
+        }
+        .gate-head h2 { font-size: 22px; font-weight: 800; letter-spacing: -0.3px; }
+        .gate-head p  { font-size: 13px; opacity: 0.6; margin-top: 4px; }
+        .gate-body { padding: 28px 32px 32px; }
+        .gate-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #718096; display: block; margin-bottom: 7px; }
+        .gate-input {
+            width: 100%; padding: 13px 16px; border: 1.5px solid #e2e8f0;
+            border-radius: 10px; font-family: inherit; font-size: 15px;
+            outline: none; margin-bottom: 14px; transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .gate-input:focus { border-color: #3b6cb7; box-shadow: 0 0 0 3px rgba(59,108,183,0.14); }
+        .gate-input.shake { animation: shake 0.35s ease; border-color: #e53e3e; }
+        .gate-btn {
+            width: 100%; padding: 14px; background: #1a365d; color: white;
+            border: none; border-radius: 10px; font-family: inherit;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+        }
+        .gate-btn:hover  { background: #2a4a7f; }
+        .gate-btn:active { transform: scale(0.98); }
+        .gate-error {
+            background: #fff5f5; border: 1px solid #fed7d7;
+            border-radius: 8px; padding: 10px 14px;
+            font-size: 13px; color: #c53030;
+            margin-bottom: 14px; display: none; text-align: center;
+        }
+        .gate-error.show { display: block; }
+        @keyframes shake {
+            0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)}
+        }
         :root {
             --navy: #1a365d; --navy-mid: #2a4a7f; --navy-light: #3b6cb7;
             --orange: #dd6b20; --orange-dark: #b85a18;
@@ -204,6 +258,25 @@
     </style>
 </head>
 <body>
+
+<!-- ── APP LOGIN GATE ── -->
+<div id="appGate">
+    <div class="gate-box">
+        <div class="gate-head">
+            <div class="gate-logo">MR</div>
+            <h2>Meeks Residential</h2>
+            <p>Contractor Quote Tool — Staff Access Only</p>
+        </div>
+        <div class="gate-body">
+            <div class="gate-error" id="gateError">Incorrect password. Please try again.</div>
+            <label class="gate-label" for="gatePw">Password</label>
+            <input type="password" class="gate-input" id="gatePw"
+                placeholder="Enter password"
+                onkeydown="if(event.key==='Enter')gateLogin()">
+            <button class="gate-btn" onclick="gateLogin()">Access Quote Tool →</button>
+        </div>
+    </div>
+</div>
 
 <header class="site-header">
     <div class="header-inner">
@@ -964,8 +1037,34 @@ function showToast(msg, type='info') {
     clearTimeout(toastTmr); toastTmr = setTimeout(() => t.classList.remove('show'), 3500);
 }
 
+// ─── APP GATE ────────────────────────────────────────────────
+function gateLogin() {
+    const pw  = document.getElementById('gatePw').value;
+    const inp = document.getElementById('gatePw');
+    const err = document.getElementById('gateError');
+    if (pw === getStoredPw()) {
+        sessionStorage.setItem('mrUnlocked', '1');
+        document.getElementById('appGate').classList.add('unlocked');
+        err.classList.remove('show');
+    } else {
+        err.classList.add('show');
+        inp.value = '';
+        inp.classList.add('shake');
+        inp.focus();
+        setTimeout(() => inp.classList.remove('shake'), 400);
+    }
+}
+
 // ─── INIT ────────────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', () => { buildUI(); recalc(); renderHistory(); });
+window.addEventListener('DOMContentLoaded', () => {
+    buildUI(); recalc(); renderHistory();
+    // Check if already unlocked this session
+    if (sessionStorage.getItem('mrUnlocked') === '1') {
+        document.getElementById('appGate').classList.add('unlocked');
+    } else {
+        setTimeout(() => document.getElementById('gatePw').focus(), 100);
+    }
+});
 </script>
 </body>
 </html>
