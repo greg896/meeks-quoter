@@ -703,7 +703,7 @@ function buildPDF() {
     const { jsPDF } = window.jspdf;
     const doc  = new jsPDF({ unit:'mm', format:'letter' });
     const PW   = 216;
-    const navy = [26,54,93], green = [39,103,73], lgray = [220,228,236];
+    const red = [207,46,46], navy = [26,54,93], green = [39,103,73], lgray = [220,228,236];
 
     const cName  = document.getElementById('clientName').value    || 'Valued Client';
     const cEmail = document.getElementById('clientEmail').value   || 'N/A';
@@ -712,19 +712,20 @@ function buildPDF() {
     const qDate  = new Date().toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
     const qNum   = 'MR-' + Date.now().toString().slice(-6);
 
-    // Header
-    doc.setFillColor(...navy); doc.rect(0,0,PW,44,'F');
+    // Header — red band with navy accent bar
+    doc.setFillColor(...red); doc.rect(0,0,PW,44,'F');
+    doc.setFillColor(...navy); doc.rect(0,0,PW,5,'F');
     doc.setTextColor(255,255,255);
-    doc.setFont('helvetica','bold'); doc.setFontSize(22); doc.text('MEEKS RESIDENTIAL',16,18);
-    doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.text('Official Project Estimate',16,26);
-    doc.setFontSize(9); doc.text('meeksfpm.com  ·  contactus@meeksfpm.com',16,33);
+    doc.setFont('helvetica','bold'); doc.setFontSize(22); doc.text('MEEKS RESIDENTIAL',16,20);
+    doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.text('Official Project Estimate',16,28);
+    doc.setFontSize(9); doc.text('meeksfpm.com  ·  contactus@meeksfpm.com',16,35);
     doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.text(`Quote #: ${qNum}`,PW-14,22,{align:'right'});
     doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.text(`Date: ${qDate}`,PW-14,30,{align:'right'});
 
     // Client info
-    doc.setFillColor(240,244,248); doc.setDrawColor(...lgray);
+    doc.setFillColor(232,238,246); doc.setDrawColor(...navy);
     doc.roundedRect(12,50,PW-24,30,2,2,'FD');
-    doc.setTextColor(0,0,0);
+    doc.setTextColor(...navy);
     doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.text('PREPARED FOR',16,57);
     doc.setFontSize(13); doc.text(cName,16,64);
     doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.text(cAddr,16,70); doc.text(`${cEmail}   |   ${cPhone}`,16,76);
@@ -738,8 +739,8 @@ function buildPDF() {
 
     selected.forEach((svc,idx) => {
         if (y > 230) { doc.addPage(); y = 20; }
-        if (idx%2===0) { doc.setFillColor(248,250,252); doc.rect(12,y-4,PW-24,8,'F'); }
-        doc.setTextColor(50,50,50); doc.setFont('helvetica','normal'); doc.setFontSize(10);
+        if (idx%2===0) { doc.setFillColor(242,246,252); doc.rect(12,y-4,PW-24,8,'F'); }
+        doc.setTextColor(...navy); doc.setFont('helvetica','normal'); doc.setFontSize(10);
         const lbl = svc.custom ? `${svc.name} (Qty: ${svc.qty})` : `${svc.name} — ${svc.qty} ${svc.unit}`;
         doc.text('• '+lbl,16,y);
         doc.setFont('helvetica','bold'); doc.text(money(svc.line),PW-14,y,{align:'right'});
@@ -754,12 +755,13 @@ function buildPDF() {
     doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(10);
     doc.text('PRICING SUMMARY',16,y+5.5); y += 12;
 
-    doc.setFillColor(240,244,248); doc.rect(12,y-4,PW-24,10,'F');
-    doc.setTextColor(0,0,0); doc.setFont('helvetica','normal'); doc.setFontSize(11);
+    doc.setFillColor(232,238,246); doc.setDrawColor(...lgray); doc.rect(12,y-4,PW-24,10,'F');
+    doc.setTextColor(...navy); doc.setFont('helvetica','normal'); doc.setFontSize(11);
     doc.text('Standard Price (includes 10% operational premium):',16,y+2);
     doc.setFont('helvetica','bold'); doc.text(money(grandTotal),PW-14,y+2,{align:'right'}); y += 12;
 
-    doc.setTextColor(29,78,216); doc.setFont('helvetica','normal');
+    doc.setFillColor(252,237,237); doc.setDrawColor(...red); doc.roundedRect(12,y-4,PW-24,10,2,2,'FD');
+    doc.setTextColor(...red); doc.setFont('helvetica','normal'); doc.setFontSize(11);
     doc.text('In-House Service Discount (5% off):',16,y+2);
     doc.setFont('helvetica','bold'); doc.text(money(grandTotal*0.95),PW-14,y+2,{align:'right'}); y += 12;
 
@@ -770,23 +772,24 @@ function buildPDF() {
     doc.text(money(grandTotal*0.90),PW-14,y+4.5,{align:'right'}); y += 22;
 
     if (y > 225) { doc.addPage(); y = 20; }
-    doc.setFillColor(255,251,235); doc.setDrawColor(253,230,138);
+    doc.setFillColor(232,238,246); doc.setDrawColor(...navy);
     doc.roundedRect(12,y,PW-24,18,2,2,'FD');
-    doc.setTextColor(146,64,14); doc.setFont('helvetica','bold'); doc.setFontSize(10);
+    doc.setTextColor(...navy); doc.setFont('helvetica','bold'); doc.setFontSize(10);
     doc.text('PAYMENT TERMS:',16,y+7); doc.setFont('helvetica','normal');
     doc.text('50% of quoted price due upfront. Remaining 50% due at job completion.',16,y+13); y += 26;
 
     if (y > 240) { doc.addPage(); y = 20; }
-    doc.setFont('helvetica','italic'); doc.setFontSize(8); doc.setTextColor(120,120,120);
+    doc.setFont('helvetica','italic'); doc.setFontSize(8); doc.setTextColor(100,110,130);
     const disc = 'Disclaimer: This estimate is based on visible conditions at time of inspection. Once work begins and existing materials are exposed, additional charges of up to 25% may apply. Any cost increase exceeding 25% will require property owner approval before work proceeds.';
     doc.text(doc.splitTextToSize(disc, PW-28), 12, y);
 
     // Photos page
     if (photos.length > 0) {
         doc.addPage();
-        doc.setFillColor(...navy); doc.rect(0,0,PW,20,'F');
+        doc.setFillColor(...red); doc.rect(0,0,PW,20,'F');
+        doc.setFillColor(...navy); doc.rect(0,0,PW,5,'F');
         doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(14);
-        doc.text('PROPERTY PHOTOS', PW/2, 13, { align:'center' });
+        doc.text('PROPERTY PHOTOS', PW/2, 14, { align:'center' });
 
         const cols = 2, imgW = 86, imgH = 58, marginX = 14, gap = 8;
         let px = marginX, py = 28;
@@ -797,10 +800,10 @@ function buildPDF() {
             if (py + imgH > 270) { doc.addPage(); py = 20; px = marginX; }
 
             try { doc.addImage(photo.dataUrl, 'JPEG', px, py, imgW, imgH, undefined, 'FAST'); } catch(e) {}
-            doc.setDrawColor(...lgray); doc.rect(px, py, imgW, imgH);
+            doc.setDrawColor(...navy); doc.rect(px, py, imgW, imgH);
 
             if (photo.caption) {
-                doc.setFont('helvetica','italic'); doc.setFontSize(8); doc.setTextColor(80,80,80);
+                doc.setFont('helvetica','italic'); doc.setFontSize(8); doc.setTextColor(...navy);
                 doc.text(photo.caption, px + imgW/2, py + imgH + 5, { align:'center', maxWidth: imgW });
             }
 
@@ -810,6 +813,7 @@ function buildPDF() {
 
     // Footer on last page
     doc.setFillColor(...navy); doc.rect(0,272,PW,14,'F');
+    doc.setFillColor(...red); doc.rect(0,272,PW,2,'F');
     doc.setTextColor(255,255,255); doc.setFont('helvetica','normal'); doc.setFontSize(9);
     doc.text('Meeks Residential  |  meeksfpm.com  |  contactus@meeksfpm.com', PW/2, 280, {align:'center'});
 
