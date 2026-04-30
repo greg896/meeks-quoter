@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeks Residential — Quote Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --navy: #1a365d; --navy-mid: #2a4a7f; --navy-light: #3b6cb7;
+            --orange: #dd6b20; --orange-dark: #b85a18;
+            --green: #276749; --green-light: #2f855a;
+            --bg: #f0f4f8; --card: #ffffff; --border: #e2e8f0;
+            --text: #2d3748; --muted: #718096;
+            --shadow: 0 2px 8px rgba(0,0,0,0.07);
+            --shadow-lg: 0 8px 28px rgba(0,0,0,0.12);
+        }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+        /* HEADER */
+        .site-header { background: linear-gradient(135deg, #0f2240 0%, var(--navy) 60%, var(--navy-mid) 100%); color: white; box-shadow: 0 4px 20px rgba(0,0,0,0.25); }
+        .header-inner { max-width: 1280px; margin: 0 auto; padding: 18px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+        .brand { display: flex; align-items: center; gap: 14px; }
+        .brand-icon { width: 50px; height: 50px; background: var(--orange); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900; color: white; flex-shrink: 0; box-shadow: 0 4px 12px rgba(221,107,32,0.4); }
+        .brand-text h1 { font-size: 20px; font-weight: 800; letter-spacing: -0.3px; }
+        .brand-text p { font-size: 12px; opacity: 0.65; margin-top: 2px; }
+        .header-right { display: flex; align-items: center; gap: 14px; }
+        .header-meta { text-align: right; font-size: 11px; opacity: 0.7; line-height: 1.6; }
+        .header-meta strong { font-size: 13px; opacity: 1; display: block; margin-bottom: 2px; }
+        .btn-admin { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); color: white; padding: 8px 14px; border-radius: 8px; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.15s; white-space: nowrap; }
+        .btn-admin:hover { background: rgba(255,255,255,0.22); }
+
+        /* LAYOUT */
+        .main-wrap { max-width: 1280px; margin: 0 auto; padding: 24px 28px; display: grid; grid-template-columns: 1fr 360px; gap: 24px; align-items: start; }
+
+        /* CARDS */
+        .card { background: var(--card); border-radius: 14px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 22px; }
+        .card:last-child { margin-bottom: 0; }
+        .card-header { background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%); color: white; padding: 15px 20px; display: flex; align-items: center; gap: 10px; }
+        .card-header .step { background: rgba(255,255,255,0.2); border-radius: 50%; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+        .card-header h2 { font-size: 14px; font-weight: 700; }
+        .card-header .note { font-size: 11px; opacity: 0.7; margin-left: auto; }
+        .card-body { padding: 20px; }
+
+        /* FORM */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .span2 { grid-column: 1 / -1; }
+        .field { display: flex; flex-direction: column; gap: 5px; }
+        .field label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: var(--muted); }
+        .field input, .field textarea { padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 14px; color: var(--text); transition: border-color 0.15s, box-shadow 0.15s; outline: none; background: white; }
+        .field input:focus, .field textarea:focus { border-color: var(--navy-light); box-shadow: 0 0 0 3px rgba(59,108,183,0.12); }
+        textarea { resize: vertical; }
+
+        /* CATEGORY ACCORDION */
+        .cat-section { margin-bottom: 12px; }
+        .cat-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #f7f9fc; border: 1.5px solid var(--border); border-radius: 9px; cursor: pointer; user-select: none; transition: background 0.15s, border-color 0.15s; }
+        .cat-header:hover { background: #ecf1f8; border-color: #aac0d8; }
+        .cat-icon { font-size: 15px; }
+        .cat-name { font-size: 13px; font-weight: 700; color: var(--navy); flex: 1; }
+        .cat-subtotal { font-size: 12px; font-weight: 700; color: var(--orange); min-width: 60px; text-align: right; }
+        .cat-arrow { font-size: 11px; color: var(--muted); margin-left: 4px; transition: transform 0.2s; }
+        .cat-arrow.open { transform: rotate(180deg); }
+        .cat-items { display: none; padding-top: 8px; }
+        .cat-items.open { display: block; }
+
+        /* SERVICE ROW */
+        .svc-row { display: grid; grid-template-columns: 20px 1fr auto 80px 80px; align-items: center; gap: 10px; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 8px; margin-bottom: 6px; background: white; transition: border-color 0.15s, background 0.15s; }
+        .svc-row:hover { border-color: #b0c4dd; background: #fafcff; }
+        .svc-row.checked { border-color: var(--navy-light); background: #f0f5ff; }
+        .svc-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--navy); cursor: pointer; }
+        .svc-label { font-size: 13px; font-weight: 500; cursor: pointer; line-height: 1.3; }
+        .svc-rate { font-size: 11px; color: var(--muted); display: block; margin-top: 1px; }
+        .qty-wrap { display: flex; align-items: center; gap: 5px; justify-content: flex-end; }
+        .qty-unit { font-size: 10px; color: var(--muted); white-space: nowrap; }
+        .qty-input { width: 72px; padding: 6px 8px; border: 1.5px solid var(--border); border-radius: 6px; text-align: center; font-size: 13px; font-family: inherit; outline: none; }
+        .qty-input:focus { border-color: var(--navy-light); }
+        .svc-cost { font-size: 13px; font-weight: 700; color: #aaa; text-align: right; white-space: nowrap; }
+        .svc-cost.live { color: var(--navy); }
+
+        /* CUSTOM ITEMS */
+        .custom-header { display: grid; grid-template-columns: 1fr 110px 70px; gap: 8px; margin-bottom: 5px; }
+        .custom-header span { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+        .custom-row { display: grid; grid-template-columns: 1fr 110px 70px; gap: 8px; margin-bottom: 8px; }
+        .custom-row input { padding: 9px 11px; border: 1.5px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 13px; outline: none; color: var(--text); }
+        .custom-row input:focus { border-color: var(--navy-light); }
+
+        /* PHOTOS */
+        .photo-drop {
+            border: 2px dashed var(--border); border-radius: 12px;
+            padding: 28px 20px; text-align: center; cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+            color: var(--muted); font-size: 14px; font-weight: 500;
+            background: #fafcff; margin-bottom: 16px;
+        }
+        .photo-drop:hover, .photo-drop.drag-over { border-color: var(--navy-light); background: #eff5ff; color: var(--navy); }
+        .photo-drop .drop-icon { font-size: 32px; display: block; margin-bottom: 8px; }
+        .photo-drop .drop-sub { font-size: 12px; color: var(--muted); margin-top: 4px; }
+        .photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+        .photo-item { position: relative; border-radius: 10px; overflow: hidden; border: 1.5px solid var(--border); background: #f7f9fc; }
+        .photo-item img { width: 100%; height: 130px; object-fit: cover; display: block; }
+        .photo-caption { padding: 6px 8px; }
+        .photo-caption input { width: 100%; border: none; background: transparent; font-size: 11px; color: var(--text); font-family: inherit; outline: none; padding: 2px 0; }
+        .photo-caption input::placeholder { color: var(--muted); }
+        .photo-remove { position: absolute; top: 6px; right: 6px; background: rgba(0,0,0,0.55); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+        .photo-remove:hover { background: #e53e3e; }
+        .photo-count { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+
+        /* SIDEBAR */
+        .sidebar { position: sticky; top: 24px; }
+        .summary-card { background: var(--card); border-radius: 14px; box-shadow: var(--shadow-lg); overflow: hidden; }
+        .summary-head { background: linear-gradient(135deg, #0f2240 0%, var(--navy) 100%); color: white; padding: 16px 20px; }
+        .summary-head h3 { font-size: 15px; font-weight: 800; }
+        .summary-head p { font-size: 11px; opacity: 0.6; margin-top: 2px; }
+        .summary-body { padding: 16px 20px; }
+        .line-items { max-height: 180px; overflow-y: auto; margin-bottom: 14px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        .li-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; padding: 5px 0; border-bottom: 1px solid #f0f0f0; font-size: 12px; }
+        .li-row:last-child { border-bottom: none; }
+        .li-name { flex: 1; color: var(--text); line-height: 1.4; }
+        .li-price { font-weight: 700; color: var(--navy); white-space: nowrap; }
+        .li-empty { font-size: 13px; color: var(--muted); text-align: center; padding: 14px 0; }
+        .tier { display: flex; justify-content: space-between; align-items: center; padding: 11px 14px; border-radius: 9px; margin-bottom: 7px; }
+        .tier-std  { background: #f0f4f8; border: 1px solid #dde6f0; }
+        .tier-disc { background: #eff6ff; border: 1px solid #bfdbfe; }
+        .tier-cash { background: #f0fdf4; border: 2px solid #86efac; }
+        .tier-lbl { font-size: 11px; font-weight: 600; line-height: 1.4; }
+        .tier-sub { font-size: 10px; color: var(--muted); }
+        .tier-amt { font-size: 19px; font-weight: 800; }
+        .tier-std  .tier-amt { color: var(--navy); }
+        .tier-disc .tier-amt { color: #1d4ed8; }
+        .tier-cash .tier-amt { color: var(--green); }
+        .terms { background: #fffbeb; border: 1px solid #fde68a; border-radius: 8px; padding: 11px 13px; font-size: 11px; color: #92400e; line-height: 1.5; margin-bottom: 14px; }
+        .action-btns { display: flex; flex-direction: column; gap: 9px; }
+        .btn { display: flex; align-items: center; justify-content: center; gap: 7px; padding: 12px 18px; border: none; border-radius: 9px; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; width: 100%; }
+        .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.15); }
+        .btn:active { transform: translateY(0); }
+        .btn-green  { background: var(--green-light); color: white; }
+        .btn-green:hover  { background: var(--green); }
+        .btn-orange { background: var(--orange); color: white; }
+        .btn-orange:hover { background: var(--orange-dark); }
+        .btn-navy   { background: var(--navy); color: white; }
+        .btn-navy:hover   { background: var(--navy-mid); }
+        .btn-ghost  { background: transparent; border: 1.5px solid var(--border); color: var(--muted); }
+        .btn-ghost:hover  { border-color: var(--navy-light); color: var(--navy); }
+        .disclaimer { font-size: 10px; color: var(--muted); line-height: 1.5; margin-top: 12px; font-style: italic; }
+
+        /* HISTORY */
+        .history-wrap { max-width: 1280px; margin: 0 auto 48px; padding: 0 28px; }
+        .history-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 14px; margin-top: 4px; }
+        .hist-card { background: white; border-radius: 10px; padding: 16px; box-shadow: var(--shadow); border-left: 4px solid var(--navy); }
+        .hist-name { font-size: 14px; font-weight: 700; }
+        .hist-addr { font-size: 11px; color: var(--muted); margin: 2px 0 6px; }
+        .hist-total { font-size: 20px; font-weight: 800; color: var(--navy); }
+        .hist-date { font-size: 10px; color: var(--muted); margin-top: 2px; }
+        .hist-actions { display: flex; gap: 7px; margin-top: 11px; }
+        .hist-actions .btn { flex: none; padding: 7px 12px; font-size: 11px; }
+
+        /* MODAL */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15,34,64,0.6); backdrop-filter: blur(4px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+        .modal-overlay.open { opacity: 1; pointer-events: all; }
+        .modal { background: white; border-radius: 16px; box-shadow: 0 24px 64px rgba(0,0,0,0.25); width: 100%; max-width: 560px; overflow: hidden; transform: translateY(20px); transition: transform 0.25s; }
+        .modal-overlay.open .modal { transform: translateY(0); }
+        .modal-head { background: linear-gradient(135deg, #0f2240, var(--navy)); color: white; padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; }
+        .modal-head h3 { font-size: 16px; font-weight: 800; }
+        .modal-close { background: rgba(255,255,255,0.15); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
+        .modal-close:hover { background: rgba(255,255,255,0.28); }
+        .modal-body { padding: 24px; }
+        .modal-error { background: #fff5f5; border: 1px solid #fed7d7; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #c53030; margin-bottom: 16px; display: none; }
+        .modal-error.show { display: block; }
+        .admin-modal { max-width: 780px; max-height: 90vh; display: flex; flex-direction: column; }
+        .admin-body { padding: 0; overflow-y: auto; flex: 1; }
+        .admin-section { padding: 20px 24px; border-bottom: 1px solid var(--border); }
+        .admin-section:last-child { border-bottom: none; }
+        .admin-section h4 { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--navy); margin-bottom: 14px; }
+        .rate-grid { display: grid; grid-template-columns: 1fr 130px; gap: 8px 16px; align-items: center; }
+        .rate-name { font-size: 13px; color: var(--text); }
+        .rate-unit { font-size: 10px; color: var(--muted); }
+        .rate-input-wrap { display: flex; align-items: center; gap: 6px; }
+        .rate-dollar { font-size: 13px; font-weight: 700; color: var(--muted); }
+        .rate-input { width: 100%; padding: 8px 10px; border: 1.5px solid var(--border); border-radius: 7px; font-family: inherit; font-size: 13px; font-weight: 600; text-align: right; outline: none; }
+        .rate-input:focus { border-color: var(--navy-light); box-shadow: 0 0 0 3px rgba(59,108,183,0.12); }
+        .cat-rate-header { display: flex; align-items: center; gap: 8px; padding: 10px 0 6px; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
+        .cat-rate-header span:first-child { font-size: 14px; }
+        .cat-rate-header span:last-child { font-size: 12px; font-weight: 700; color: var(--navy); }
+        .admin-footer { padding: 16px 24px; background: #f7f9fc; border-top: 1px solid var(--border); display: flex; gap: 10px; justify-content: flex-end; }
+        .admin-footer .btn { width: auto; padding: 10px 20px; }
+        .pw-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+        .pw-field label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
+        .pw-field input { padding: 11px 14px; border: 1.5px solid var(--border); border-radius: 9px; font-family: inherit; font-size: 14px; outline: none; }
+        .pw-field input:focus { border-color: var(--navy-light); box-shadow: 0 0 0 3px rgba(59,108,183,0.12); }
+        .info-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; padding: 11px 14px; font-size: 12px; color: #1e40af; margin-bottom: 16px; line-height: 1.5; }
+
+        /* TOAST */
+        .toast { position: fixed; bottom: 24px; right: 24px; background: #1a202c; color: white; padding: 13px 18px; border-radius: 10px; font-size: 13px; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,0.3); z-index: 9999; display: flex; align-items: center; gap: 10px; transform: translateY(80px); opacity: 0; transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); max-width: 340px; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { border-left: 4px solid #68d391; }
+        .toast.error   { border-left: 4px solid #fc8181; }
+        .toast.info    { border-left: 4px solid #63b3ed; }
+
+        /* RESPONSIVE */
+        @media (max-width: 960px) { .main-wrap { grid-template-columns: 1fr; padding: 16px; } .sidebar { position: relative; top: 0; } .form-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 600px) { .header-inner { padding: 14px 16px; } .header-meta { display: none; } .main-wrap { padding: 12px; gap: 16px; } .history-wrap { padding: 0 12px; } .svc-row { grid-template-columns: 20px 1fr 80px 72px; } .custom-row { grid-template-columns: 1fr 90px 60px; } .photo-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); } }
+    </style>
+</head>
+<body>
+
+<header class="site-header">
+    <div class="header-inner">
+        <div class="brand">
+            <div class="brand-icon">MR</div>
+            <div class="brand-text">
+                <h1>Meeks Residential</h1>
+                <p>meeksfpm.com &nbsp;·&nbsp; contactus@meeksfpm.com</p>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="header-meta">
+                <strong>Contractor Quote Tool</strong>
+                Northeast Ohio Rehab Estimates
+            </div>
+            <button class="btn-admin" onclick="openAdminLogin()">⚙️ Admin Rates</button>
+        </div>
+    </div>
+</header>
+
+<div class="main-wrap">
+    <div>
+        <!-- Step 1: Client Info -->
+        <div class="card">
+            <div class="card-header"><div class="step">1</div><h2>Client &amp; Property Information</h2></div>
+            <div class="card-body">
+                <div class="form-grid">
+                    <div class="field"><label>Client Full Name</label><input type="text" id="clientName" placeholder="Jane Doe"></div>
+                    <div class="field"><label>Phone Number</label><input type="tel" id="clientPhone" placeholder="(216) 555-1234"></div>
+                    <div class="field span2"><label>Client Email Address</label><input type="email" id="clientEmail" placeholder="owner@email.com"></div>
+                    <div class="field span2"><label>Property Address</label><input type="text" id="propertyAddress" placeholder="3549 West 105th St, Cleveland, OH 44111"></div>
+                    <div class="field span2"><label>Internal Notes (not printed on quote)</label><textarea id="internalNotes" rows="2" placeholder="Access code, key location, special instructions…"></textarea></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Services -->
+        <div class="card">
+            <div class="card-header">
+                <div class="step">2</div>
+                <h2>Scope of Work — 30 Common NE Ohio Rehab Items</h2>
+                <span class="note">Prices include 10% operational premium</span>
+            </div>
+            <div class="card-body" id="servicesContainer"></div>
+        </div>
+
+        <!-- Step 3: Custom Items -->
+        <div class="card">
+            <div class="card-header"><div class="step">3</div><h2>Custom / Additional Line Items</h2></div>
+            <div class="card-body">
+                <div class="custom-header"><span>Description</span><span>Unit Price ($)</span><span>Qty</span></div>
+                <div id="customContainer"></div>
+            </div>
+        </div>
+
+        <!-- Step 4: Photos -->
+        <div class="card">
+            <div class="card-header">
+                <div class="step">4</div>
+                <h2>Property Photos</h2>
+                <span class="note">Up to 5 photos — embedded in PDF</span>
+            </div>
+            <div class="card-body">
+                <div class="photo-drop" id="photoDrop"
+                    onclick="document.getElementById('photoInput').click()"
+                    ondragover="e=>e.preventDefault()"
+                    ondrop="handleDrop(event)">
+                    <span class="drop-icon">📷</span>
+                    Click to add photos, or drag &amp; drop here
+                    <div class="drop-sub">JPEG, PNG, HEIC — up to 5 photos, included in your PDF</div>
+                </div>
+                <input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="handlePhotoInput(this.files)">
+                <div class="photo-count" id="photoCount" style="display:none"></div>
+                <div class="photo-grid" id="photoGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="summary-card">
+            <div class="summary-head"><h3>Live Quote Summary</h3><p>Updates as you build the scope of work</p></div>
+            <div class="summary-body">
+                <div class="line-items" id="lineItems"><div class="li-empty">No services selected yet</div></div>
+                <div>
+                    <div class="tier tier-std">
+                        <div><div class="tier-lbl">Standard Price</div><div class="tier-sub">Includes 10% operational premium</div></div>
+                        <div class="tier-amt" id="priceStd">$0.00</div>
+                    </div>
+                    <div class="tier tier-disc">
+                        <div><div class="tier-lbl">In-House Service Discount</div><div class="tier-sub">5% off standard</div></div>
+                        <div class="tier-amt" id="priceDisc">$0.00</div>
+                    </div>
+                    <div class="tier tier-cash">
+                        <div><div class="tier-lbl">Cash Payment Price</div><div class="tier-sub">10% off standard</div></div>
+                        <div class="tier-amt" id="priceCash">$0.00</div>
+                    </div>
+                </div>
+                <div class="terms" style="margin-top:8px;"><strong>Payment Terms:</strong> 50% of quoted price due upfront. Remaining 50% due at job completion.</div>
+                <div class="action-btns">
+                    <button class="btn btn-green"  onclick="downloadPDF()">📄 Download PDF Quote</button>
+                    <button class="btn btn-orange" onclick="emailQuote()">✉️ Email Quote to Client</button>
+                    <button class="btn btn-navy"   onclick="saveQuote()">💾 Save Quote</button>
+                    <button class="btn btn-ghost"  onclick="newQuote()">↺ Start New Quote</button>
+                </div>
+                <div class="disclaimer">Estimates may increase up to 25% based on unforeseen conditions. Any overage beyond 25% requires property owner approval before work proceeds.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- History -->
+<div class="history-wrap">
+    <div class="card">
+        <div class="card-header" style="background:linear-gradient(135deg,#2d3748,#4a5568);">
+            <span style="font-size:16px;">🗂️</span>
+            <h2>Saved Quote History</h2>
+            <span class="note">Stored on this device — no account required</span>
+        </div>
+        <div class="card-body"><div class="history-grid" id="historyGrid"></div></div>
+    </div>
+</div>
+
+<!-- Admin Login Modal -->
+<div class="modal-overlay" id="loginOverlay">
+    <div class="modal">
+        <div class="modal-head"><h3>🔐 Admin Login</h3><button class="modal-close" onclick="closeModal('loginOverlay')">✕</button></div>
+        <div class="modal-body">
+            <div class="info-box">Enter your admin password to manage pricing rates.</div>
+            <div class="modal-error" id="loginError">Incorrect password. Please try again.</div>
+            <div class="pw-field"><label>Password</label><input type="password" id="loginPw" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')checkLogin()"></div>
+            <button class="btn btn-navy" onclick="checkLogin()" style="width:100%;">Unlock Admin Panel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Panel Modal -->
+<div class="modal-overlay" id="adminOverlay">
+    <div class="modal admin-modal">
+        <div class="modal-head"><h3>⚙️ Admin — Manage Pricing Rates</h3><button class="modal-close" onclick="closeModal('adminOverlay')">✕</button></div>
+        <div class="admin-body" id="adminBody"></div>
+        <div class="admin-footer">
+            <button class="btn btn-ghost" onclick="resetRates()">↺ Reset to Defaults</button>
+            <button class="btn btn-navy"  onclick="saveRates()">💾 Save Rates</button>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal-overlay" id="changePwOverlay">
+    <div class="modal">
+        <div class="modal-head"><h3>🔑 Change Admin Password</h3><button class="modal-close" onclick="closeModal('changePwOverlay')">✕</button></div>
+        <div class="modal-body">
+            <div class="modal-error" id="changePwError"></div>
+            <div class="pw-field"><label>Current Password</label><input type="password" id="curPw" placeholder="Current password"></div>
+            <div class="pw-field"><label>New Password</label><input type="password" id="newPw" placeholder="New password (min 6 chars)"></div>
+            <div class="pw-field"><label>Confirm New Password</label><input type="password" id="confPw" placeholder="Repeat new password"></div>
+            <button class="btn btn-navy" onclick="changePassword()" style="width:100%;margin-top:4px;">Update Password</button>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────
+const DEFAULTS = [
+    { id:'painting',   icon:'🎨', name:'Painting & Prep', items:[
+        { id:1,  name:'Interior Painting',              rate:450,   unit:'Room',      label:'Rooms',    qty:1    },
+        { id:2,  name:'Exterior Painting (Full Home)',  rate:3500,  unit:'Home',      label:'Homes',    qty:1    },
+    ]},
+    { id:'flooring',   icon:'🪵', name:'Flooring', items:[
+        { id:3,  name:'Carpet Installation',            rate:4.50,  unit:'Sq Ft',     label:'Sq Ft',    qty:200  },
+        { id:4,  name:'Luxury Vinyl Plank (LVP)',       rate:7.00,  unit:'Sq Ft',     label:'Sq Ft',    qty:200  },
+        { id:5,  name:'Tile Flooring',                  rate:8.50,  unit:'Sq Ft',     label:'Sq Ft',    qty:100  },
+    ]},
+    { id:'drywall',    icon:'🏗️', name:'Drywall & Walls', items:[
+        { id:6,  name:'Drywall Patch / Repair',         rate:350,   unit:'Patch',     label:'Patches',  qty:1    },
+        { id:7,  name:'Full Drywall Replacement',       rate:2.50,  unit:'Sq Ft',     label:'Sq Ft',    qty:500  },
+    ]},
+    { id:'plumbing',   icon:'🔧', name:'Plumbing', items:[
+        { id:8,  name:'Faucet / Fixture Replacement',   rate:275,   unit:'Fixture',   label:'Fixtures', qty:1    },
+        { id:9,  name:'Toilet Replacement',             rate:350,   unit:'Unit',      label:'Units',    qty:1    },
+        { id:10, name:'Water Heater Replacement',       rate:1200,  unit:'Unit',      label:'Units',    qty:1    },
+        { id:11, name:'Pipe Repair / Section Replace',  rate:85,    unit:'Linear Ft', label:'Lin Ft',   qty:20   },
+    ]},
+    { id:'electrical', icon:'⚡', name:'Electrical', items:[
+        { id:12, name:'Electrical Panel Upgrade (200A)',rate:2200,  unit:'Panel',     label:'Panels',   qty:1    },
+        { id:13, name:'Outlet / Switch Replacement',    rate:75,    unit:'Outlet',    label:'Outlets',  qty:5    },
+        { id:14, name:'Ceiling Fan / Light Install',    rate:150,   unit:'Unit',      label:'Units',    qty:1    },
+    ]},
+    { id:'hvac',       icon:'🌡️', name:'HVAC', items:[
+        { id:15, name:'Furnace Replacement',            rate:3200,  unit:'Unit',      label:'Units',    qty:1    },
+        { id:16, name:'Central AC Installation',        rate:3800,  unit:'Unit',      label:'Units',    qty:1    },
+        { id:17, name:'HVAC Tune-up & Service Call',    rate:200,   unit:'Unit',      label:'Units',    qty:1    },
+    ]},
+    { id:'kitchen',    icon:'🍳', name:'Kitchen', items:[
+        { id:18, name:'Kitchen Remodel (Basic)',        rate:18500, unit:'Job',       label:'Jobs',     qty:1    },
+        { id:19, name:'Cabinet Replacement',            rate:4500,  unit:'Job',       label:'Jobs',     qty:1    },
+        { id:20, name:'Countertop Replacement',         rate:1800,  unit:'Job',       label:'Jobs',     qty:1    },
+    ]},
+    { id:'bathroom',   icon:'🛁', name:'Bathroom', items:[
+        { id:21, name:'Bathroom Remodel (Basic)',       rate:9200,  unit:'Job',       label:'Jobs',     qty:1    },
+        { id:22, name:'Vanity & Sink Replacement',      rate:650,   unit:'Unit',      label:'Units',    qty:1    },
+        { id:23, name:'Shower / Tub Resurfacing',       rate:600,   unit:'Unit',      label:'Units',    qty:1    },
+    ]},
+    { id:'exterior',   icon:'🏠', name:'Exterior & Roofing', items:[
+        { id:24, name:'Roof Inspection & Patch',        rate:550,   unit:'Job',       label:'Jobs',     qty:1    },
+        { id:25, name:'Full Roof Replacement',          rate:5.50,  unit:'Sq Ft',     label:'Sq Ft',    qty:1500 },
+        { id:26, name:'Gutter Install / Replacement',   rate:12,    unit:'Linear Ft', label:'Lin Ft',   qty:100  },
+        { id:27, name:'Window Replacement',             rate:450,   unit:'Window',    label:'Windows',  qty:1    },
+        { id:28, name:'Exterior Door Replacement',      rate:750,   unit:'Door',      label:'Doors',    qty:1    },
+        { id:29, name:'Interior Door Replacement',      rate:350,   unit:'Door',      label:'Doors',    qty:1    },
+    ]},
+    { id:'foundation', icon:'🧱', name:'Foundation & Waterproofing', items:[
+        { id:30, name:'Basement Waterproofing',         rate:4500,  unit:'Job',       label:'Jobs',     qty:1    },
+    ]},
+];
+
+const DEFAULT_PASSWORD = 'MeeksAdmin1';
+const PW_KEY    = '__mrpw__';
+const RATES_KEY = '__mrrates__';
+const MAX_PHOTOS = 5;
+
+function getCategories() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(RATES_KEY) || '{}');
+        return DEFAULTS.map(cat => ({ ...cat, items: cat.items.map(item => ({ ...item, rate: saved[item.id] !== undefined ? saved[item.id] : item.rate })) }));
+    } catch { return DEFAULTS; }
+}
+
+let CATEGORIES = getCategories();
+let grandTotal  = 0;
+let selected    = [];
+let photos      = []; // { dataUrl, caption }
+
+// ─── BUILD UI ────────────────────────────────────────────────
+function buildUI() {
+    const container = document.getElementById('servicesContainer');
+    container.innerHTML = '';
+
+    CATEGORIES.forEach(cat => {
+        const sec = document.createElement('div');
+        sec.className = 'cat-section';
+        const rows = cat.items.map(item => {
+            const fmtRate = item.rate < 10
+                ? `$${item.rate.toFixed(2)}/${item.unit}`
+                : `$${item.rate.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}/${item.unit}`;
+            return `<div class="svc-row" id="row_${item.id}">
+                <input type="checkbox" id="svc_${item.id}" onchange="onCheck(${item.id})">
+                <div class="svc-label" onclick="toggleCheck(${item.id})">${item.name}<span class="svc-rate" id="rateLabel_${item.id}">${fmtRate}</span></div>
+                <div class="qty-wrap"><span class="qty-unit">${item.label}:</span>
+                <input type="number" class="qty-input" id="qty_${item.id}" value="${item.qty}" min="0.01" step="any" oninput="recalc()"></div>
+                <div class="svc-cost" id="cost_${item.id}">—</div>
+            </div>`;
+        }).join('');
+
+        sec.innerHTML = `
+            <div class="cat-header" onclick="toggleCat('${cat.id}')">
+                <span class="cat-icon">${cat.icon}</span>
+                <span class="cat-name">${cat.name}</span>
+                <span class="cat-subtotal" id="catAmt_${cat.id}"></span>
+                <span class="cat-arrow" id="catArr_${cat.id}">▼</span>
+            </div>
+            <div class="cat-items" id="catItems_${cat.id}">${rows}</div>`;
+        container.appendChild(sec);
+    });
+
+    const cust = document.getElementById('customContainer');
+    if (!cust.hasChildNodes()) {
+        for (let i = 1; i <= 5; i++) {
+            const row = document.createElement('div');
+            row.className = 'custom-row';
+            row.innerHTML = `
+                <input type="text"   id="cName_${i}"  placeholder="Description" oninput="recalc()">
+                <input type="number" id="cPrice_${i}" placeholder="0.00" min="0" step="0.01" oninput="recalc()">
+                <input type="number" id="cQty_${i}"   placeholder="1" min="1" value="1" oninput="recalc()">`;
+            cust.appendChild(row);
+        }
+    }
+
+    if (window.innerWidth > 960) {
+        CATEGORIES.forEach(cat => {
+            document.getElementById('catItems_' + cat.id)?.classList.add('open');
+            document.getElementById('catArr_'   + cat.id)?.classList.add('open');
+        });
+    }
+}
+
+function toggleCat(id) {
+    document.getElementById('catItems_' + id).classList.toggle('open');
+    document.getElementById('catArr_'   + id).classList.toggle('open');
+}
+
+function toggleCheck(id) {
+    const cb = document.getElementById('svc_' + id);
+    cb.checked = !cb.checked; onCheck(id);
+}
+
+function onCheck(id) {
+    document.getElementById('row_' + id).classList.toggle('checked', document.getElementById('svc_' + id).checked);
+    recalc();
+}
+
+// ─── PHOTOS ──────────────────────────────────────────────────
+const photoDrop = document.getElementById('photoDrop');
+photoDrop.addEventListener('dragover',  e => { e.preventDefault(); photoDrop.classList.add('drag-over'); });
+photoDrop.addEventListener('dragleave', ()  => photoDrop.classList.remove('drag-over'));
+photoDrop.addEventListener('drop',      e  => { e.preventDefault(); photoDrop.classList.remove('drag-over'); handlePhotoInput(e.dataTransfer.files); });
+
+function handlePhotoInput(files) {
+    const remaining = MAX_PHOTOS - photos.length;
+    if (remaining <= 0) { showToast(`Maximum ${MAX_PHOTOS} photos allowed.`, 'error'); return; }
+    const toProcess = Array.from(files).slice(0, remaining);
+    toProcess.forEach(file => {
+        if (!file.type.startsWith('image/')) return;
+        const reader = new FileReader();
+        reader.onload = e => compressImage(e.target.result, dataUrl => {
+            photos.push({ dataUrl, caption: '' });
+            renderPhotos();
+        });
+        reader.readAsDataURL(file);
+    });
+    document.getElementById('photoInput').value = '';
+}
+
+function compressImage(src, cb) {
+    const img = new Image();
+    img.onload = () => {
+        const MAX = 900;
+        let w = img.width, h = img.height;
+        if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+        if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        cb(canvas.toDataURL('image/jpeg', 0.78));
+    };
+    img.src = src;
+}
+
+function renderPhotos() {
+    const grid  = document.getElementById('photoGrid');
+    const count = document.getElementById('photoCount');
+
+    if (photos.length === 0) {
+        grid.innerHTML = '';
+        count.style.display = 'none';
+        return;
+    }
+
+    count.style.display = 'block';
+    count.textContent = `${photos.length} of ${MAX_PHOTOS} photos added${photos.length < MAX_PHOTOS ? ` — click above to add ${MAX_PHOTOS - photos.length} more` : ' (maximum reached)'}`;
+
+    grid.innerHTML = photos.map((p, i) => `
+        <div class="photo-item">
+            <img src="${p.dataUrl}" alt="Property photo ${i+1}">
+            <div class="photo-caption">
+                <input type="text" value="${p.caption}" placeholder="Add caption…"
+                    oninput="photos[${i}].caption=this.value">
+            </div>
+            <button class="photo-remove" onclick="removePhoto(${i})">✕</button>
+        </div>`).join('');
+}
+
+function removePhoto(i) {
+    photos.splice(i, 1);
+    renderPhotos();
+}
+
+// ─── CALCULATION ─────────────────────────────────────────────
+function recalc() {
+    let total = 0; selected = [];
+    CATEGORIES.forEach(cat => {
+        let catAmt = 0;
+        cat.items.forEach(item => {
+            const cb  = document.getElementById('svc_'  + item.id);
+            const qEl = document.getElementById('qty_'  + item.id);
+            const cEl = document.getElementById('cost_' + item.id);
+            if (!cb) return;
+            const qty = parseFloat(qEl.value) || 0;
+            if (cb.checked && qty > 0) {
+                const line = item.rate * 1.10 * qty;
+                catAmt += line; total += line;
+                cEl.textContent = money(line); cEl.classList.add('live');
+                selected.push({ id: item.id, name: item.name, qty, unit: item.label, line, custom: false });
+            } else { cEl.textContent = '—'; cEl.classList.remove('live'); }
+        });
+        const el = document.getElementById('catAmt_' + cat.id);
+        if (el) el.textContent = catAmt > 0 ? money(catAmt) : '';
+    });
+    for (let i = 1; i <= 5; i++) {
+        const n = document.getElementById('cName_'  + i)?.value.trim();
+        const p = parseFloat(document.getElementById('cPrice_' + i)?.value) || 0;
+        const q = parseFloat(document.getElementById('cQty_'   + i)?.value) || 1;
+        if (n && p > 0) { const line = p*q; total += line; selected.push({ id:null, name:n, qty:q, unit:'ea', line, custom:true }); }
+    }
+    grandTotal = total;
+    document.getElementById('priceStd').textContent  = money(total);
+    document.getElementById('priceDisc').textContent = money(total * 0.95);
+    document.getElementById('priceCash').textContent = money(total * 0.90);
+    renderLineItems();
+}
+
+function money(n) { return '$' + n.toLocaleString('en-US', { minimumFractionDigits:2, maximumFractionDigits:2 }); }
+
+function renderLineItems() {
+    const el = document.getElementById('lineItems');
+    if (!selected.length) { el.innerHTML = '<div class="li-empty">No services selected yet</div>'; return; }
+    el.innerHTML = selected.map(s =>
+        `<div class="li-row"><span class="li-name">${s.name} <span style="color:var(--muted)">(${s.qty} ${s.unit})</span></span><span class="li-price">${money(s.line)}</span></div>`
+    ).join('');
+}
+
+// ─── PDF ─────────────────────────────────────────────────────
+function buildPDF() {
+    if (grandTotal === 0) { showToast('Select at least one service first.', 'error'); return null; }
+    if (!window.jspdf)    { showToast('PDF library still loading — try again in a moment.', 'error'); return null; }
+
+    const { jsPDF } = window.jspdf;
+    const doc  = new jsPDF({ unit:'mm', format:'letter' });
+    const PW   = 216;
+    const navy = [26,54,93], green = [39,103,73], lgray = [220,228,236];
+
+    const cName  = document.getElementById('clientName').value    || 'Valued Client';
+    const cEmail = document.getElementById('clientEmail').value   || 'N/A';
+    const cPhone = document.getElementById('clientPhone').value   || 'N/A';
+    const cAddr  = document.getElementById('propertyAddress').value || 'N/A';
+    const qDate  = new Date().toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+    const qNum   = 'MR-' + Date.now().toString().slice(-6);
+
+    // Header
+    doc.setFillColor(...navy); doc.rect(0,0,PW,44,'F');
+    doc.setTextColor(255,255,255);
+    doc.setFont('helvetica','bold'); doc.setFontSize(22); doc.text('MEEKS RESIDENTIAL',16,18);
+    doc.setFont('helvetica','normal'); doc.setFontSize(11); doc.text('Official Project Estimate',16,26);
+    doc.setFontSize(9); doc.text('meeksfpm.com  ·  contactus@meeksfpm.com',16,33);
+    doc.setFont('helvetica','bold'); doc.setFontSize(10); doc.text(`Quote #: ${qNum}`,PW-14,22,{align:'right'});
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.text(`Date: ${qDate}`,PW-14,30,{align:'right'});
+
+    // Client info
+    doc.setFillColor(240,244,248); doc.setDrawColor(...lgray);
+    doc.roundedRect(12,50,PW-24,30,2,2,'FD');
+    doc.setTextColor(0,0,0);
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.text('PREPARED FOR',16,57);
+    doc.setFontSize(13); doc.text(cName,16,64);
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.text(cAddr,16,70); doc.text(`${cEmail}   |   ${cPhone}`,16,76);
+
+    // Scope
+    let y = 90;
+    doc.setFillColor(...navy); doc.rect(12,y,PW-24,8,'F');
+    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(10);
+    doc.text('SCOPE OF WORK',16,y+5.5); doc.text('AMOUNT',PW-14,y+5.5,{align:'right'});
+    y += 12;
+
+    selected.forEach((svc,idx) => {
+        if (y > 230) { doc.addPage(); y = 20; }
+        if (idx%2===0) { doc.setFillColor(248,250,252); doc.rect(12,y-4,PW-24,8,'F'); }
+        doc.setTextColor(50,50,50); doc.setFont('helvetica','normal'); doc.setFontSize(10);
+        const lbl = svc.custom ? `${svc.name} (Qty: ${svc.qty})` : `${svc.name} — ${svc.qty} ${svc.unit}`;
+        doc.text('• '+lbl,16,y);
+        doc.setFont('helvetica','bold'); doc.text(money(svc.line),PW-14,y,{align:'right'});
+        y += 8;
+    });
+
+    y += 3; doc.setDrawColor(...lgray); doc.line(12,y,PW-12,y); y += 12;
+
+    // Pricing
+    if (y > 215) { doc.addPage(); y = 20; }
+    doc.setFillColor(...navy); doc.rect(12,y,PW-24,8,'F');
+    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(10);
+    doc.text('PRICING SUMMARY',16,y+5.5); y += 12;
+
+    doc.setFillColor(240,244,248); doc.rect(12,y-4,PW-24,10,'F');
+    doc.setTextColor(0,0,0); doc.setFont('helvetica','normal'); doc.setFontSize(11);
+    doc.text('Standard Price (includes 10% operational premium):',16,y+2);
+    doc.setFont('helvetica','bold'); doc.text(money(grandTotal),PW-14,y+2,{align:'right'}); y += 12;
+
+    doc.setTextColor(29,78,216); doc.setFont('helvetica','normal');
+    doc.text('In-House Service Discount (5% off):',16,y+2);
+    doc.setFont('helvetica','bold'); doc.text(money(grandTotal*0.95),PW-14,y+2,{align:'right'}); y += 12;
+
+    doc.setFillColor(240,253,244); doc.setDrawColor(134,239,172);
+    doc.roundedRect(12,y-4,PW-24,14,2,2,'FD');
+    doc.setTextColor(...green); doc.setFont('helvetica','bold'); doc.setFontSize(13);
+    doc.text('Cash Payment Price (10% off):',16,y+4.5);
+    doc.text(money(grandTotal*0.90),PW-14,y+4.5,{align:'right'}); y += 22;
+
+    if (y > 225) { doc.addPage(); y = 20; }
+    doc.setFillColor(255,251,235); doc.setDrawColor(253,230,138);
+    doc.roundedRect(12,y,PW-24,18,2,2,'FD');
+    doc.setTextColor(146,64,14); doc.setFont('helvetica','bold'); doc.setFontSize(10);
+    doc.text('PAYMENT TERMS:',16,y+7); doc.setFont('helvetica','normal');
+    doc.text('50% of quoted price due upfront. Remaining 50% due at job completion.',16,y+13); y += 26;
+
+    if (y > 240) { doc.addPage(); y = 20; }
+    doc.setFont('helvetica','italic'); doc.setFontSize(8); doc.setTextColor(120,120,120);
+    const disc = 'Disclaimer: This estimate is based on visible conditions at time of inspection. Once work begins and existing materials are exposed, additional charges of up to 25% may apply. Any cost increase exceeding 25% will require property owner approval before work proceeds.';
+    doc.text(doc.splitTextToSize(disc, PW-28), 12, y);
+
+    // Photos page
+    if (photos.length > 0) {
+        doc.addPage();
+        doc.setFillColor(...navy); doc.rect(0,0,PW,20,'F');
+        doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(14);
+        doc.text('PROPERTY PHOTOS', PW/2, 13, { align:'center' });
+
+        const cols = 2, imgW = 86, imgH = 58, marginX = 14, gap = 8;
+        let px = marginX, py = 28;
+
+        photos.forEach((photo, i) => {
+            if (i > 0 && i % cols === 0) { py += imgH + 20; px = marginX; }
+            if (i % cols !== 0) px = marginX + imgW + gap;
+            if (py + imgH > 270) { doc.addPage(); py = 20; px = marginX; }
+
+            try { doc.addImage(photo.dataUrl, 'JPEG', px, py, imgW, imgH, undefined, 'FAST'); } catch(e) {}
+            doc.setDrawColor(...lgray); doc.rect(px, py, imgW, imgH);
+
+            if (photo.caption) {
+                doc.setFont('helvetica','italic'); doc.setFontSize(8); doc.setTextColor(80,80,80);
+                doc.text(photo.caption, px + imgW/2, py + imgH + 5, { align:'center', maxWidth: imgW });
+            }
+
+            if (i % cols === 0 && i + 1 < photos.length) px += 0;
+        });
+    }
+
+    // Footer on last page
+    doc.setFillColor(...navy); doc.rect(0,272,PW,14,'F');
+    doc.setTextColor(255,255,255); doc.setFont('helvetica','normal'); doc.setFontSize(9);
+    doc.text('Meeks Residential  |  meeksfpm.com  |  contactus@meeksfpm.com', PW/2, 280, {align:'center'});
+
+    return { doc, qNum, safeName: cName.replace(/\s+/g,'_') };
+}
+
+function downloadPDF() {
+    const r = buildPDF(); if (!r) return;
+    r.doc.save(`Meeks_Quote_${r.safeName}.pdf`);
+    showToast('PDF downloaded!', 'success');
+}
+
+function emailQuote() {
+    if (grandTotal === 0) { showToast('Select at least one service first.', 'error'); return; }
+    const r = buildPDF(); if (!r) return;
+    const filename = `Meeks_Quote_${r.safeName}.pdf`;
+    r.doc.save(filename);
+
+    const toEmail = document.getElementById('clientEmail').value;
+    const toName  = document.getElementById('clientName').value || 'Client';
+    const toAddr  = document.getElementById('propertyAddress').value;
+
+    const subject = encodeURIComponent(`Your Project Estimate from Meeks Residential — Quote #${r.qNum}`);
+    const body    = encodeURIComponent(`Hi ${toName},\n\nThank you for the opportunity to work on your property${toAddr ? ` at ${toAddr}` : ''}.\n\nPlease find your project estimate attached (${filename}).\n\nPRICING SUMMARY\n───────────────────────────────\nStandard Price:          ${money(grandTotal)}\nIn-House Discount (5%):  ${money(grandTotal*0.95)}\nCash Price (10% off):    ${money(grandTotal*0.90)}\n\nPayment Terms: 50% upfront · 50% at completion\n\nPlease don't hesitate to reach out with any questions.\n\nBest regards,\nMeeks Residential\ncontactus@meeksfpm.com | meeksfpm.com`);
+
+    showToast('PDF saved — attach it to the email that opens! 📎', 'info');
+    setTimeout(() => { window.location.href = `mailto:${encodeURIComponent(toEmail)}?subject=${subject}&body=${body}`; }, 900);
+}
+
+// ─── SAVE / HISTORY ──────────────────────────────────────────
+function saveQuote() {
+    if (grandTotal === 0) { showToast('Select at least one service before saving.', 'error'); return; }
+    const checkedMap = {}, qtyMap = {};
+    CATEGORIES.forEach(cat => cat.items.forEach(item => {
+        const cb = document.getElementById('svc_' + item.id);
+        const qe = document.getElementById('qty_' + item.id);
+        if (cb) checkedMap[item.id] = cb.checked;
+        if (qe) qtyMap[item.id] = qe.value;
+    }));
+    const custState = [];
+    for (let i=1;i<=5;i++) custState.push({
+        n: document.getElementById('cName_' +i)?.value||'',
+        p: document.getElementById('cPrice_'+i)?.value||'',
+        q: document.getElementById('cQty_'  +i)?.value||'1',
+    });
+
+    const quote = {
+        id: Date.now(), date: new Date().toLocaleDateString('en-US'),
+        client: { name: document.getElementById('clientName').value, email: document.getElementById('clientEmail').value, phone: document.getElementById('clientPhone').value, addr: document.getElementById('propertyAddress').value },
+        totals: { std: grandTotal, disc: grandTotal*0.95, cash: grandTotal*0.90 },
+        notes: document.getElementById('internalNotes').value,
+        checkedMap, qtyMap, custState,
+    };
+
+    const hist = getHist(); hist.unshift(quote);
+    if (hist.length > 60) hist.pop();
+    localStorage.setItem('meeksQuotes', JSON.stringify(hist));
+    renderHistory();
+    showToast('Quote saved to history!', 'success');
+}
+
+function loadQuote(id) {
+    const q = getHist().find(x => x.id === id); if (!q) return;
+    document.getElementById('clientName').value      = q.client.name  || '';
+    document.getElementById('clientEmail').value     = q.client.email || '';
+    document.getElementById('clientPhone').value     = q.client.phone || '';
+    document.getElementById('propertyAddress').value = q.client.addr  || '';
+    document.getElementById('internalNotes').value   = q.notes        || '';
+
+    CATEGORIES.forEach(cat => cat.items.forEach(item => {
+        const cb = document.getElementById('svc_' + item.id);
+        const qe = document.getElementById('qty_' + item.id);
+        const rw = document.getElementById('row_' + item.id);
+        if (cb) { cb.checked = !!q.checkedMap?.[item.id]; rw?.classList.toggle('checked', cb.checked); }
+        if (qe && q.qtyMap?.[item.id]) qe.value = q.qtyMap[item.id];
+    }));
+    (q.custState||[]).forEach((s,i) => {
+        const idx=i+1;
+        const ne=document.getElementById('cName_' +idx); if(ne) ne.value=s.n;
+        const pe=document.getElementById('cPrice_'+idx); if(pe) pe.value=s.p;
+        const qe=document.getElementById('cQty_'  +idx); if(qe) qe.value=s.q;
+    });
+    CATEGORIES.forEach(cat => {
+        if (cat.items.some(it => q.checkedMap?.[it.id])) {
+            document.getElementById('catItems_'+cat.id)?.classList.add('open');
+            document.getElementById('catArr_'  +cat.id)?.classList.add('open');
+        }
+    });
+    recalc();
+    window.scrollTo({ top:0, behavior:'smooth' });
+    showToast('Quote loaded!', 'success');
+}
+
+function deleteQuote(id) {
+    if (!confirm('Delete this saved quote?')) return;
+    localStorage.setItem('meeksQuotes', JSON.stringify(getHist().filter(q => q.id !== id)));
+    renderHistory(); showToast('Quote deleted.', 'info');
+}
+
+function getHist() { try { return JSON.parse(localStorage.getItem('meeksQuotes')||'[]'); } catch { return []; } }
+
+function renderHistory() {
+    const hist = getHist(), el = document.getElementById('historyGrid');
+    if (!hist.length) { el.innerHTML='<p style="color:var(--muted);font-size:13px;">No saved quotes yet — click "Save Quote" to keep a record.</p>'; return; }
+    el.innerHTML = hist.map(q => `
+        <div class="hist-card">
+            <div class="hist-name">${q.client.name||'Unknown Client'}</div>
+            <div class="hist-addr">${q.client.addr||'No address on file'}</div>
+            <div class="hist-total">${money(q.totals.std)}</div>
+            <div class="hist-date">Saved ${q.date}</div>
+            <div class="hist-actions">
+                <button class="btn btn-navy"  onclick="loadQuote(${q.id})">Load</button>
+                <button class="btn btn-ghost" onclick="deleteQuote(${q.id})">Delete</button>
+            </div>
+        </div>`).join('');
+}
+
+function newQuote() {
+    if (!confirm('Clear all fields and start a new quote?')) return;
+    ['clientName','clientEmail','clientPhone','propertyAddress','internalNotes'].forEach(id => { document.getElementById(id).value=''; });
+    CATEGORIES.forEach(cat => cat.items.forEach(item => {
+        const cb=document.getElementById('svc_'+item.id); const qe=document.getElementById('qty_'+item.id); const rw=document.getElementById('row_'+item.id);
+        if(cb){cb.checked=false;rw?.classList.remove('checked');} if(qe) qe.value=item.qty;
+    }));
+    for(let i=1;i<=5;i++){
+        const ne=document.getElementById('cName_' +i); if(ne) ne.value='';
+        const pe=document.getElementById('cPrice_'+i); if(pe) pe.value='';
+        const qe=document.getElementById('cQty_'  +i); if(qe) qe.value='1';
+    }
+    photos=[]; renderPhotos(); recalc(); showToast('New quote started.', 'info');
+}
+
+// ─── ADMIN ───────────────────────────────────────────────────
+function getStoredPw() { return localStorage.getItem(PW_KEY) || DEFAULT_PASSWORD; }
+
+function openAdminLogin() {
+    document.getElementById('loginPw').value = '';
+    document.getElementById('loginError').classList.remove('show');
+    openModal('loginOverlay');
+    setTimeout(() => document.getElementById('loginPw').focus(), 200);
+}
+
+function checkLogin() {
+    if (document.getElementById('loginPw').value === getStoredPw()) {
+        closeModal('loginOverlay'); openAdminPanel();
+    } else {
+        document.getElementById('loginError').classList.add('show');
+        document.getElementById('loginPw').value = ''; document.getElementById('loginPw').focus();
+    }
+}
+
+function changePassword() {
+    const cur=document.getElementById('curPw').value, nw=document.getElementById('newPw').value, conf=document.getElementById('confPw').value;
+    const errEl=document.getElementById('changePwError'); errEl.classList.remove('show');
+    if (cur !== getStoredPw())   { errEl.textContent='Current password is incorrect.'; errEl.classList.add('show'); return; }
+    if (nw.length < 6)           { errEl.textContent='New password must be at least 6 characters.'; errEl.classList.add('show'); return; }
+    if (nw !== conf)             { errEl.textContent='Passwords do not match.'; errEl.classList.add('show'); return; }
+    localStorage.setItem(PW_KEY, nw); closeModal('changePwOverlay'); showToast('Password updated!', 'success');
+}
+
+function openAdminPanel() {
+    const body = document.getElementById('adminBody');
+    body.innerHTML = '';
+
+    const ratesSection = document.createElement('div');
+    ratesSection.className = 'admin-section';
+    ratesSection.innerHTML = '<h4>📋 Base Rates (per unit, before 10% premium is applied)</h4>';
+
+    CATEGORIES.forEach(cat => {
+        const block = document.createElement('div');
+        block.style.marginBottom = '20px';
+        block.innerHTML = `<div class="cat-rate-header"><span>${cat.icon}</span><span>${cat.name}</span></div><div class="rate-grid" id="rateGrid_${cat.id}"></div>`;
+        ratesSection.appendChild(block);
+        const grid = block.querySelector('.rate-grid');
+        cat.items.forEach(item => {
+            grid.insertAdjacentHTML('beforeend', `
+                <div class="rate-name">${item.name} <span class="rate-unit">/ ${item.unit}</span></div>
+                <div class="rate-input-wrap"><span class="rate-dollar">$</span>
+                <input type="number" class="rate-input" id="adminRate_${item.id}" value="${item.rate}" min="0" step="0.01"></div>`);
+        });
+    });
+
+    body.appendChild(ratesSection);
+
+    const pwSection = document.createElement('div');
+    pwSection.className = 'admin-section';
+    pwSection.innerHTML = `<h4>🔑 Security</h4>
+        <button class="btn btn-ghost" onclick="closeModal('adminOverlay');openModal('changePwOverlay')" style="width:auto;padding:10px 18px;">Change Admin Password</button>`;
+    body.appendChild(pwSection);
+
+    openModal('adminOverlay');
+}
+
+function saveRates() {
+    const saved = {}; let valid = true;
+    CATEGORIES.forEach(cat => cat.items.forEach(item => {
+        const el = document.getElementById('adminRate_' + item.id);
+        const val = parseFloat(el?.value);
+        if (isNaN(val) || val < 0) { valid = false; if(el) el.style.borderColor='#e53e3e'; return; }
+        if(el) el.style.borderColor='';
+        saved[item.id] = val;
+    }));
+    if (!valid) { showToast('Fix the highlighted rate fields.', 'error'); return; }
+    localStorage.setItem(RATES_KEY, JSON.stringify(saved));
+    CATEGORIES = getCategories(); buildUI(); recalc();
+    closeModal('adminOverlay'); showToast('Rates saved and applied!', 'success');
+}
+
+function resetRates() {
+    if (!confirm('Reset all rates back to factory defaults?')) return;
+    localStorage.removeItem(RATES_KEY); CATEGORIES = getCategories(); buildUI(); recalc();
+    closeModal('adminOverlay'); showToast('Rates reset to defaults.', 'info');
+}
+
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+document.addEventListener('click', e => {
+    ['loginOverlay','adminOverlay','changePwOverlay'].forEach(id => {
+        if (e.target === document.getElementById(id)) closeModal(id);
+    });
+});
+
+// ─── TOAST ───────────────────────────────────────────────────
+let toastTmr;
+function showToast(msg, type='info') {
+    const t = document.getElementById('toast');
+    t.textContent = msg; t.className = `toast ${type} show`;
+    clearTimeout(toastTmr); toastTmr = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ─── INIT ────────────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => { buildUI(); recalc(); renderHistory(); });
+</script>
+</body>
+</html>
