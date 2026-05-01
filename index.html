@@ -996,15 +996,26 @@ function emailQuote() {
     ].filter(Boolean);
 
     const body =
-`Hi ${toName},
+`Dear ${toName},
 
-Thank you for choosing Meeks Residential. Your project
-estimate is below — reply anytime with questions.
+Thank you so much for the opportunity to work with Meeks
+Residential. We truly value your business and are excited
+about the possibility of transforming your property.
+
+Your official project estimate (Quote #${r.qNum}) is detailed
+below for your review.
+
+** ACTION REQUESTED **
+The sooner we receive your approval to move forward, the
+faster we can secure your spot on our schedule. Our calendar
+fills up quickly -- simply reply to this email with "Approved"
+or give us a call and we will get you locked in right away.
 
 ========================================
   MEEKS RESIDENTIAL
   Project Estimate  |  Quote #${r.qNum}
-  ${issueDate}
+  Issued:  ${issueDate}
+  Expires: ${expDate}
 ========================================
 
 PROJECT DETAILS
@@ -1028,18 +1039,29 @@ PAYMENT TERMS
   50% due upon completion
   Accepted: Cash, Check, Zelle
 
-Quote valid through: ${expDate}
+NEXT STEPS
+  1. Reply "Approved" to this email, OR
+  2. Call us to confirm and schedule
+  3. Submit your 50% deposit to begin
 
-========================================
-  Meeks Residential
-  contactus@meeksfpm.com
-  meeksfpm.com
+Don't wait -- spots fill fast and we want to make sure
+your project gets the attention it deserves.
+
+We look forward to earning your trust and delivering
+outstanding results on your property.
+
+With appreciation,
+
+Meeks Residential
+contactus@meeksfpm.com
+meeksfpm.com
 ========================================`;
 
-    const subject = encodeURIComponent(`Project Estimate from Meeks Residential - Quote #${r.qNum}`);
+    const subject = encodeURIComponent(`Your Project Estimate - Meeks Residential Quote #${r.qNum}`);
     showToast('Quote saved — opening email ✉️', 'success');
     setTimeout(() => {
-        window.location.href = `mailto:${encodeURIComponent(toEmail)}?subject=${subject}&body=${encodeURIComponent(body)}`;
+        // Note: toEmail must NOT be encoded — @ must stay literal in mailto:addr
+        window.location.href = `mailto:${toEmail}?subject=${subject}&body=${encodeURIComponent(body)}`;
     }, 800);
 }
 
