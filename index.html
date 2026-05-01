@@ -873,11 +873,12 @@ function buildPDF() {
         });
     }
 
-    // Footer on last page
-    doc.setFillColor(...navy); doc.rect(0,272,PW,14,'F');
-    doc.setFillColor(...red); doc.rect(0,272,PW,2,'F');
+    // Footer on last page — anchored to actual page bottom
+    const PH = doc.internal.pageSize.getHeight();
+    doc.setFillColor(...navy); doc.rect(0, PH-14, PW, 14, 'F');
+    doc.setFillColor(...red);  doc.rect(0, PH-14, PW,  2, 'F');
     doc.setTextColor(255,255,255); doc.setFont('helvetica','normal'); doc.setFontSize(9);
-    doc.text('Meeks Residential  |  meeksfpm.com  |  contactus@meeksfpm.com', PW/2, 280, {align:'center'});
+    doc.text('Meeks Residential  |  meeksfpm.com  |  contactus@meeksfpm.com', PW/2, PH-5, {align:'center'});
 
     return { doc, qNum, safeName: cName.replace(/\s+/g,'_') };
 }
