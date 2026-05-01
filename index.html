@@ -137,7 +137,7 @@
         .svc-row:hover { border-color: #e8a0a0; background: #fffafa; }
         .svc-row.checked { border-color: var(--red); background: #fff5f5; }
         .svc-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--red); cursor: pointer; }
-        .svc-label { font-size: 13px; font-weight: 500; cursor: pointer; line-height: 1.3; color: var(--navy); }
+        .svc-label { font-size: 13px; font-weight: 500; cursor: pointer; line-height: 1.3; color: var(--navy); min-width: 0; overflow-wrap: break-word; }
         .svc-rate { font-size: 11px; color: var(--muted); display: block; margin-top: 1px; }
         .qty-wrap { display: flex; align-items: center; gap: 5px; justify-content: flex-end; }
         .qty-unit { font-size: 10px; color: var(--muted); white-space: nowrap; }
@@ -288,13 +288,26 @@
             .header-inner { padding: 10px 12px; gap: 8px; }
             .brand-text h1 { font-size: 15px; }
             .brand-text p { display: none; }
-            .main-wrap { padding: 12px; gap: 16px; }
-            .history-wrap { padding: 0 12px; }
-            .svc-row { grid-template-columns: 20px 1fr auto auto; gap: 6px; }
-            .qty-unit { display: none; }
-            .qty-input { width: 58px; padding: 6px 6px; font-size: 12px; }
-            .svc-cost { font-size: 12px; min-width: 52px; }
-            .custom-row { grid-template-columns: 1fr 86px 56px; gap: 6px; }
+            .main-wrap { padding: 10px; gap: 14px; }
+            .history-wrap { padding: 0 10px; }
+            .card-body { padding: 14px 12px; }
+
+            /* 2-row service item: [checkbox][label] / [·][qty][cost] */
+            .svc-row {
+                grid-template-columns: 22px 1fr auto;
+                grid-template-rows: auto auto;
+                row-gap: 5px; column-gap: 8px;
+                padding: 9px 10px;
+            }
+            .svc-row > input[type="checkbox"] { grid-column: 1; grid-row: 1; align-self: start; margin-top: 2px; }
+            .svc-row .svc-label  { grid-column: 2 / 4; grid-row: 1; min-width: 0; }
+            .svc-row .qty-wrap   { grid-column: 2;     grid-row: 2; justify-content: flex-start; gap: 6px; }
+            .svc-row .svc-cost   { grid-column: 3;     grid-row: 2; font-size: 12px; align-self: center; white-space: nowrap; }
+            .qty-unit { font-size: 10px; display: block; }
+            .qty-input { width: 56px; padding: 5px 6px; font-size: 12px; }
+
+            .custom-header { grid-template-columns: 1fr 86px 54px; gap: 6px; }
+            .custom-row    { grid-template-columns: 1fr 86px 54px; gap: 6px; }
             .photo-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
         }
     </style>
