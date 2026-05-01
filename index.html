@@ -79,7 +79,7 @@
         body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
         /* HEADER */
-        .site-header { background: #ffffff; color: var(--text); border-bottom: 1px solid var(--border); box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+        .site-header { background: #ffffff; color: var(--text); border-bottom: 3px solid var(--red); box-shadow: 0 2px 8px rgba(26,54,93,0.08); position: sticky; top: 0; z-index: 500; }
         .header-inner { max-width: 1280px; margin: 0 auto; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
         .brand { display: flex; align-items: center; gap: 14px; }
         .brand-icon { width: 46px; height: 46px; background: var(--red); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 900; color: white; flex-shrink: 0; letter-spacing: -0.5px; }
@@ -114,8 +114,9 @@
 
         /* CATEGORY ACCORDION */
         .cat-section { margin-bottom: 10px; }
-        .cat-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #fafafa; border: 1.5px solid var(--border); border-radius: 4px; cursor: pointer; user-select: none; transition: background 0.15s, border-color 0.15s; }
-        .cat-header:hover { background: #fff0f0; border-color: #e8a0a0; }
+        .cat-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #fafafa; border: 1.5px solid var(--border); border-left: 4px solid var(--border); border-radius: 4px; cursor: pointer; user-select: none; transition: background 0.15s, border-color 0.15s; }
+        .cat-header:hover { background: #fff0f0; border-color: #e8a0a0; border-left-color: var(--red); }
+        .cat-header.expanded { background: #fff5f5; border-color: #e8a0a0; border-left-color: var(--red); }
         .cat-icon { font-size: 15px; }
         .cat-name { font-size: 13px; font-weight: 700; color: var(--navy); flex: 1; }
         .cat-subtotal { font-size: 12px; font-weight: 700; color: var(--red); min-width: 60px; text-align: right; }
@@ -137,6 +138,16 @@
         .qty-input:focus { border-color: var(--red); }
         .svc-cost { font-size: 13px; font-weight: 700; color: #bbb; text-align: right; white-space: nowrap; }
         .svc-cost.live { color: var(--red); }
+
+        /* SERVICE COUNT BADGE */
+        .svc-count-badge { background: rgba(255,255,255,0.25); border-radius: 20px; padding: 2px 9px; font-size: 11px; font-weight: 700; margin-left: 6px; display: none; }
+        .svc-count-badge.visible { display: inline-block; }
+        .clear-all-btn { background: none; border: none; color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 600; cursor: pointer; margin-left: auto; padding: 2px 6px; border-radius: 3px; transition: color 0.15s; }
+        .clear-all-btn:hover { color: white; }
+
+        /* VALIDITY BADGE */
+        .validity-note { display: flex; align-items: center; gap: 6px; background: #eef2f8; border: 1px solid var(--border); border-radius: 4px; padding: 7px 12px; font-size: 11px; color: var(--navy); margin-bottom: 10px; font-weight: 500; }
+        .validity-note span { font-size: 14px; }
 
         /* CUSTOM ITEMS */
         .custom-header { display: grid; grid-template-columns: 1fr 110px 70px; gap: 8px; margin-bottom: 5px; }
@@ -257,6 +268,12 @@
         .toast.error   { border-left: 4px solid var(--red); }
         .toast.info    { border-left: 4px solid #888; }
 
+        /* FOOTER */
+        .site-footer { background: var(--navy); color: rgba(255,255,255,0.7); text-align: center; padding: 18px 28px; font-size: 12px; margin-top: 40px; }
+        .site-footer strong { color: white; }
+        .site-footer a { color: rgba(255,255,255,0.6); text-decoration: none; }
+        .site-footer a:hover { color: white; }
+
         /* RESPONSIVE */
         @media (max-width: 960px) { .main-wrap { grid-template-columns: 1fr; padding: 16px; } .sidebar { position: relative; top: 0; } .form-grid { grid-template-columns: 1fr; } }
         @media (max-width: 600px) { .header-inner { padding: 14px 16px; } .header-meta { display: none; } .main-wrap { padding: 12px; gap: 16px; } .history-wrap { padding: 0 12px; } .svc-row { grid-template-columns: 20px 1fr 80px 72px; } .custom-row { grid-template-columns: 1fr 90px 60px; } .photo-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); } }
@@ -279,6 +296,7 @@
                 placeholder="Enter password"
                 onkeydown="if(event.key==='Enter')gateLogin()">
             <button class="gate-btn" onclick="gateLogin()">Access Quote Tool →</button>
+            <p style="text-align:center;margin-top:10px;font-size:11px;color:var(--muted);">Press Enter to login</p>
         </div>
     </div>
 </div>
@@ -309,10 +327,11 @@
             <div class="card-header"><div class="step">1</div><h2>Client &amp; Property Information</h2></div>
             <div class="card-body">
                 <div class="form-grid">
+                    <div class="field span2"><label>Job / Project Name</label><input type="text" id="jobName" placeholder="e.g. 3549 W 105th — Full Rehab, Unit 2 Turn, Kitchen Update…"></div>
                     <div class="field"><label>Client Full Name</label><input type="text" id="clientName" placeholder="Jane Doe"></div>
-                    <div class="field"><label>Phone Number</label><input type="tel" id="clientPhone" placeholder="(216) 555-1234"></div>
-                    <div class="field span2"><label>Client Email Address</label><input type="email" id="clientEmail" placeholder="owner@email.com"></div>
-                    <div class="field span2"><label>Property Address</label><input type="text" id="propertyAddress" placeholder="3549 West 105th St, Cleveland, OH 44111"></div>
+                    <div class="field"><label>Phone Number</label><input type="tel" id="clientPhone" placeholder="(216) 555-1234" oninput="formatPhone(this)"></div>
+                    <div class="field"><label>Client Email Address</label><input type="email" id="clientEmail" placeholder="owner@email.com"></div>
+                    <div class="field"><label>Property Address</label><input type="text" id="propertyAddress" placeholder="3549 West 105th St, Cleveland, OH 44111"></div>
                     <div class="field span2"><label>Internal Notes (not printed on quote)</label><textarea id="internalNotes" rows="2" placeholder="Access code, key location, special instructions…"></textarea></div>
                 </div>
             </div>
@@ -322,8 +341,9 @@
         <div class="card">
             <div class="card-header">
                 <div class="step">2</div>
-                <h2>Scope of Work — 30 Common NE Ohio Rehab Items</h2>
-                <span class="note">Prices include 10% operational premium</span>
+                <h2>Scope of Work <span class="svc-count-badge" id="svcCount"></span></h2>
+                <span class="note">+10% operational premium</span>
+                <button class="clear-all-btn" id="clearAllBtn" onclick="clearAll()" style="display:none;">✕ Clear All</button>
             </div>
             <div class="card-body" id="servicesContainer"></div>
         </div>
@@ -365,6 +385,7 @@
         <div class="summary-card">
             <div class="summary-head"><h3>Live Quote Summary</h3><p>Updates as you build the scope of work</p></div>
             <div class="summary-body">
+                <div class="validity-note"><span>📋</span> Quote valid for <strong>&nbsp;30 days&nbsp;</strong> from issue date</div>
                 <div class="line-items" id="lineItems"><div class="li-empty">No services selected yet</div></div>
                 <div>
                     <div class="tier tier-std">
@@ -396,7 +417,7 @@
 <!-- History -->
 <div class="history-wrap">
     <div class="card">
-        <div class="card-header" style="background:linear-gradient(135deg,#2d3748,#4a5568);">
+        <div class="card-header">
             <span style="font-size:16px;">🗂️</span>
             <h2>Saved Quote History</h2>
             <span class="note">Stored on this device — no account required</span>
@@ -404,6 +425,12 @@
         <div class="card-body"><div class="history-grid" id="historyGrid"></div></div>
     </div>
 </div>
+
+<!-- Footer -->
+<footer class="site-footer">
+    <strong>Meeks Residential</strong> &nbsp;·&nbsp; <a href="https://meeksfpm.com" target="_blank">meeksfpm.com</a> &nbsp;·&nbsp; <a href="mailto:contactus@meeksfpm.com">contactus@meeksfpm.com</a>
+    <br>Quote data stored locally on this device. No account or internet required.
+</footer>
 
 <!-- Admin Login Modal -->
 <div class="modal-overlay" id="loginOverlay">
@@ -567,6 +594,8 @@ function buildUI() {
         CATEGORIES.forEach(cat => {
             document.getElementById('catItems_' + cat.id)?.classList.add('open');
             document.getElementById('catArr_'   + cat.id)?.classList.add('open');
+            const hdr = document.getElementById('catItems_' + cat.id)?.previousElementSibling;
+            if (hdr) hdr.classList.add('expanded');
         });
     }
 }
@@ -574,6 +603,27 @@ function buildUI() {
 function toggleCat(id) {
     document.getElementById('catItems_' + id).classList.toggle('open');
     document.getElementById('catArr_'   + id).classList.toggle('open');
+    const hdr = document.getElementById('catItems_' + id).previousElementSibling;
+    hdr.classList.toggle('expanded', document.getElementById('catItems_' + id).classList.contains('open'));
+}
+
+function formatPhone(input) {
+    let v = input.value.replace(/\D/g, '').slice(0, 10);
+    if (v.length >= 7)      v = '(' + v.slice(0,3) + ') ' + v.slice(3,6) + '-' + v.slice(6);
+    else if (v.length >= 4) v = '(' + v.slice(0,3) + ') ' + v.slice(3);
+    else if (v.length >= 1) v = '(' + v;
+    input.value = v;
+}
+
+function clearAll() {
+    if (!confirm('Remove all selected services?')) return;
+    CATEGORIES.forEach(cat => cat.items.forEach(item => {
+        const cb = document.getElementById('svc_' + item.id);
+        const rw = document.getElementById('row_' + item.id);
+        if (cb) { cb.checked = false; rw?.classList.remove('checked'); }
+    }));
+    recalc();
+    showToast('All services cleared.', 'info');
 }
 
 function toggleCheck(id) {
@@ -683,6 +733,10 @@ function recalc() {
     document.getElementById('priceStd').textContent  = money(total);
     document.getElementById('priceDisc').textContent = money(total * 0.95);
     document.getElementById('priceCash').textContent = money(total * 0.90);
+    const badge = document.getElementById('svcCount');
+    const clearBtn = document.getElementById('clearAllBtn');
+    if (badge) { badge.textContent = selected.length + ' selected'; badge.classList.toggle('visible', selected.length > 0); }
+    if (clearBtn) clearBtn.style.display = selected.length > 0 ? 'block' : 'none';
     renderLineItems();
 }
 
@@ -706,11 +760,15 @@ function buildPDF() {
     const PW   = 216;
     const red = [207,46,46], navy = [26,54,93], green = [39,103,73], lgray = [220,228,236];
 
+    const jobName = document.getElementById('jobName').value || '';
     const cName  = document.getElementById('clientName').value    || 'Valued Client';
     const cEmail = document.getElementById('clientEmail').value   || 'N/A';
     const cPhone = document.getElementById('clientPhone').value   || 'N/A';
     const cAddr  = document.getElementById('propertyAddress').value || 'N/A';
-    const qDate  = new Date().toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+    const issueDate = new Date();
+    const qDate  = issueDate.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+    const expiry = new Date(issueDate); expiry.setDate(expiry.getDate() + 30);
+    const qExpiry = expiry.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
     const qNum   = 'MR-' + Date.now().toString().slice(-6);
 
     // Header — red band with navy accent bar
@@ -725,14 +783,17 @@ function buildPDF() {
 
     // Client info
     doc.setFillColor(232,238,246); doc.setDrawColor(...navy);
-    doc.roundedRect(12,50,PW-24,30,2,2,'FD');
+    doc.roundedRect(12,50,PW-24,jobName ? 36 : 30,2,2,'FD');
     doc.setTextColor(...navy);
     doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.text('PREPARED FOR',16,57);
-    doc.setFontSize(13); doc.text(cName,16,64);
-    doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.text(cAddr,16,70); doc.text(`${cEmail}   |   ${cPhone}`,16,76);
+    if (jobName) { doc.setFillColor(...red); doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.text('PROJECT: ' + jobName.toUpperCase(), 16, 63); doc.setTextColor(...navy); doc.setFontSize(13); doc.text(cName, 16, 71); doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.text(cAddr,16,77); doc.text(`${cEmail}   |   ${cPhone}`,16,83); }
+    else { doc.setFontSize(13); doc.text(cName,16,64); doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.text(cAddr,16,70); doc.text(`${cEmail}   |   ${cPhone}`,16,76); }
+    // Validity
+    doc.setFont('helvetica','italic'); doc.setFontSize(8); doc.setTextColor(...navy);
+    doc.text(`Valid through: ${qExpiry}`, PW-14, jobName ? 83 : 76, { align:'right' });
 
     // Scope
-    let y = 90;
+    let y = jobName ? 96 : 90;
     doc.setFillColor(...navy); doc.rect(12,y,PW-24,8,'F');
     doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(10);
     doc.text('SCOPE OF WORK',16,y+5.5); doc.text('AMOUNT',PW-14,y+5.5,{align:'right'});
@@ -863,6 +924,7 @@ function saveQuote() {
 
     const quote = {
         id: Date.now(), date: new Date().toLocaleDateString('en-US'),
+        jobName: document.getElementById('jobName').value,
         client: { name: document.getElementById('clientName').value, email: document.getElementById('clientEmail').value, phone: document.getElementById('clientPhone').value, addr: document.getElementById('propertyAddress').value },
         totals: { std: grandTotal, disc: grandTotal*0.95, cash: grandTotal*0.90 },
         notes: document.getElementById('internalNotes').value,
@@ -878,6 +940,7 @@ function saveQuote() {
 
 function loadQuote(id) {
     const q = getHist().find(x => x.id === id); if (!q) return;
+    document.getElementById('jobName').value          = q.jobName      || '';
     document.getElementById('clientName').value      = q.client.name  || '';
     document.getElementById('clientEmail').value     = q.client.email || '';
     document.getElementById('clientPhone').value     = q.client.phone || '';
@@ -921,6 +984,7 @@ function renderHistory() {
     if (!hist.length) { el.innerHTML='<p style="color:var(--muted);font-size:13px;">No saved quotes yet — click "Save Quote" to keep a record.</p>'; return; }
     el.innerHTML = hist.map(q => `
         <div class="hist-card">
+            ${q.jobName ? `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--red);margin-bottom:3px;">${q.jobName}</div>` : ''}
             <div class="hist-name">${q.client.name||'Unknown Client'}</div>
             <div class="hist-addr">${q.client.addr||'No address on file'}</div>
             <div class="hist-total">${money(q.totals.std)}</div>
@@ -934,7 +998,7 @@ function renderHistory() {
 
 function newQuote() {
     if (!confirm('Clear all fields and start a new quote?')) return;
-    ['clientName','clientEmail','clientPhone','propertyAddress','internalNotes'].forEach(id => { document.getElementById(id).value=''; });
+    ['jobName','clientName','clientEmail','clientPhone','propertyAddress','internalNotes'].forEach(id => { document.getElementById(id).value=''; });
     CATEGORIES.forEach(cat => cat.items.forEach(item => {
         const cb=document.getElementById('svc_'+item.id); const qe=document.getElementById('qty_'+item.id); const rw=document.getElementById('row_'+item.id);
         if(cb){cb.checked=false;rw?.classList.remove('checked');} if(qe) qe.value=item.qty;
