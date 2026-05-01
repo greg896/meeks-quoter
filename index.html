@@ -957,9 +957,9 @@ function emailQuote() {
     saveQuote();
 
     // Build line items — plain ASCII, no unicode
-    const SEP  = '------------------------------------';
-    const HSEP = '====================================';
-    const SSEP = '  ' + '-'.repeat(32);
+    const SEP  = '--------------------------';
+    const HSEP = '==========================';
+    const SSEP = '  ' + '-'.repeat(22);
 
     const itemLines = [];
     CATEGORIES.forEach(cat => {
