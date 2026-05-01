@@ -940,8 +940,6 @@ function downloadPDF() {
 function emailQuote() {
     if (grandTotal === 0) { showToast('Select at least one service first.', 'error'); return; }
     const r = buildPDF(); if (!r) return;
-    const filename = `Meeks_Quote_${r.safeName}.pdf`;
-    r.doc.save(filename);
 
     const toEmail = document.getElementById('clientEmail').value;
     const toName  = document.getElementById('clientName').value || 'Client';
@@ -949,67 +947,100 @@ function emailQuote() {
     const phone   = document.getElementById('clientPhone').value;
     const jobName = document.getElementById('jobName').value;
 
-    // Build full line-item list
-    const lines = [];
+    // Auto-save to history (no PDF download prompt)
+    saveQuote();
+
+    // Build line items — plain ASCII, no unicode, lines kept short
+    const SEP  = '----------------------------------------';
+    const SSEP = '  ' + '-'.repeat(36);
+
+    const itemLines = [];
     CATEGORIES.forEach(cat => {
-        cat.items.forEach(item => {
+        const checked = cat.items.filter(item => {
             const cb = document.getElementById('svc_' + item.id);
-            if (!cb || !cb.checked) return;
+            return cb && cb.checked;
+        });
+        if (!checked.length) return;
+        itemLines.push(`  [ ${cat.name} ]`);
+        checked.forEach(item => {
             const qty  = parseFloat(document.getElementById('qty_' + item.id)?.value) || 1;
             const cost = item.rate * qty * 1.10;
-            lines.push(`  • ${item.name} (${qty} ${item.unit}) — ${money(cost)}`);
+            const label = `    ${item.name}`;
+            const price = money(cost);
+            const dots  = '.'.repeat(Math.max(2, 38 - label.length - price.length));
+            itemLines.push(`${label}${dots}${price}`);
+            itemLines.push(`    (${qty} ${item.unit} @ ${money(item.rate)}/${item.unit})`);
         });
     });
     for (let i = 1; i <= 5; i++) {
         const n = document.getElementById('cName_'  + i)?.value.trim();
         const p = parseFloat(document.getElementById('cPrice_' + i)?.value) || 0;
-        if (n && p) lines.push(`  • ${n} — ${money(p * 1.10)}`);
+        if (n && p) {
+            const label = `  ${n}`;
+            const price = money(p * 1.10);
+            const dots  = '.'.repeat(Math.max(2, 40 - label.length - price.length));
+            itemLines.push(`${label}${dots}${price}`);
+        }
     }
 
-    const issueDate  = new Date().toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+    const issueDate = new Date().toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
     const exp = new Date(); exp.setDate(exp.getDate() + 30);
     const expDate = exp.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+
+    const detailLines = [
+        jobName  ? `  Job:      ${jobName}`      : '',
+                   `  Client:   ${toName}`,
+        phone    ? `  Phone:    ${phone}`         : '',
+        toEmail  ? `  Email:    ${toEmail}`        : '',
+        toAddr   ? `  Property: ${toAddr}`         : '',
+    ].filter(Boolean);
 
     const body =
 `Hi ${toName},
 
-Thank you for the opportunity to work with Meeks Residential${toAddr ? ` on your property at ${toAddr}` : ''}.
+Thank you for choosing Meeks Residential. Your project
+estimate is below — reply anytime with questions.
 
-Your project estimate is attached as a PDF (${filename}). The complete breakdown is also included below.
+========================================
+  MEEKS RESIDENTIAL
+  Project Estimate  |  Quote #${r.qNum}
+  ${issueDate}
+========================================
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-MEEKS RESIDENTIAL — QUOTE #${r.qNum}
-${issueDate}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-${jobName ? `Job:      ${jobName}\n` : ''}Client:   ${toName}${phone ? `\nPhone:    ${phone}` : ''}${toEmail ? `\nEmail:    ${toEmail}` : ''}${toAddr ? `\nProperty: ${toAddr}` : ''}
+PROJECT DETAILS
+${SEP}
+${detailLines.join('\n')}
 
 SCOPE OF WORK
-─────────────────────────────────────────
-${lines.join('\n')}
+${SEP}
+${itemLines.join('\n')}
+${SEP}
 
-PRICING
-─────────────────────────────────────────
-  Standard Price:              ${money(grandTotal)}
-  In-House Discount (5% off):  ${money(grandTotal * 0.95)}
-  Cash Price (10% off):        ${money(grandTotal * 0.90)}
+PRICING OPTIONS
+${SEP}
+  Standard Price:           ${money(grandTotal)}
+  In-House Discount (5%):   ${money(grandTotal * 0.95)}
+  Cash Price (10% off):     ${money(grandTotal * 0.90)}
+${SEP}
 
 PAYMENT TERMS
-  50% due at project start · 50% upon completion
+  50% due at project start
+  50% due upon completion
   Accepted: Cash, Check, Zelle
 
 Quote valid through: ${expDate}
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Meeks Residential
-contactus@meeksfpm.com | meeksfpm.com
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Questions? Reply to this email or call us directly.`;
+========================================
+  Meeks Residential
+  contactus@meeksfpm.com
+  meeksfpm.com
+========================================`;
 
-    const subject = encodeURIComponent(`Your Project Estimate — Meeks Residential Quote #${r.qNum}`);
-    showToast('PDF saved — opening email with full quote 📎', 'info');
+    const subject = encodeURIComponent(`Project Estimate from Meeks Residential - Quote #${r.qNum}`);
+    showToast('Quote saved — opening email ✉️', 'success');
     setTimeout(() => {
         window.location.href = `mailto:${encodeURIComponent(toEmail)}?subject=${subject}&body=${encodeURIComponent(body)}`;
-    }, 900);
+    }, 800);
 }
 
 // ─── GPS ADDRESS FILL ─────────────────────────────────────────
