@@ -404,7 +404,7 @@
             <div class="card-header">
                 <div class="step">4</div>
                 <h2>Property Photos</h2>
-                <span class="note">Up to 5 photos — embedded in PDF</span>
+                <span class="note">Up to 10 photos — embedded in PDF</span>
             </div>
             <div class="card-body">
                 <div class="photo-drop" id="photoDrop"
@@ -413,7 +413,7 @@
                     ondrop="handleDrop(event)">
                     <span class="drop-icon">📷</span>
                     Click to add photos, or drag &amp; drop here
-                    <div class="drop-sub">JPEG, PNG, HEIC — up to 5 photos, included in your PDF</div>
+                    <div class="drop-sub">JPEG, PNG, HEIC — up to 10 photos, auto-resized &amp; embedded in PDF</div>
                 </div>
                 <input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="handlePhotoInput(this.files)">
                 <div class="photo-count" id="photoCount" style="display:none"></div>
@@ -573,7 +573,7 @@ const DEFAULTS = [
 const DEFAULT_PASSWORD = 'MeeksAdmin1';
 const PW_KEY    = '__mrpw__';
 const RATES_KEY = '__mrrates__';
-const MAX_PHOTOS = 5;
+const MAX_PHOTOS = 10;
 
 function getCategories() {
     try {
@@ -703,14 +703,16 @@ function handlePhotoInput(files) {
 function compressImage(src, cb) {
     const img = new Image();
     img.onload = () => {
-        const MAX = 900;
+        // Cap longest edge at 1200px for good print quality;
+        // JPEG quality 0.62 keeps 10-photo PDFs manageable (<8 MB)
+        const MAX = 1200;
         let w = img.width, h = img.height;
         if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
         if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; }
         const canvas = document.createElement('canvas');
         canvas.width = w; canvas.height = h;
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        cb(canvas.toDataURL('image/jpeg', 0.78), w, h);
+        cb(canvas.toDataURL('image/jpeg', 0.62), w, h);
     };
     img.src = src;
 }
