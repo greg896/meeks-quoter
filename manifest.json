@@ -1,0 +1,18 @@
+{
+  "name": "Meeks Residential — Quote Tool",
+  "short_name": "MeeksQuoter",
+  "description": "Contractor quote generator for NE Ohio rehab properties",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f0f4f8",
+  "theme_color": "#1a365d",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

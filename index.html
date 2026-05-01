@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meeks Residential — Quote Generator</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1a365d">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MeeksQuoter">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
@@ -88,8 +96,8 @@
         .header-right { display: flex; align-items: center; gap: 14px; }
         .header-meta { text-align: right; font-size: 11px; color: var(--muted); line-height: 1.6; }
         .header-meta strong { font-size: 12px; color: var(--navy); display: block; margin-bottom: 1px; font-weight: 700; }
-        .btn-admin { background: transparent; border: 1.5px solid var(--border); color: var(--muted); padding: 8px 14px; border-radius: 4px; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.15s; white-space: nowrap; }
-        .btn-admin:hover { border-color: var(--red); color: var(--red); }
+        .btn-admin { background: transparent; border: 1.5px solid var(--border); color: var(--muted); padding: 0; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; }
+        .btn-admin:hover { border-color: var(--navy); color: var(--navy); background: #eef2f8; }
 
         /* LAYOUT */
         .main-wrap { max-width: 1280px; margin: 0 auto; padding: 24px 28px; display: grid; grid-template-columns: 1fr 360px; gap: 24px; align-items: start; }
@@ -276,7 +284,21 @@
 
         /* RESPONSIVE */
         @media (max-width: 960px) { .main-wrap { grid-template-columns: 1fr; padding: 16px; } .sidebar { position: relative; top: 0; } .form-grid { grid-template-columns: 1fr; } }
-        @media (max-width: 600px) { .header-inner { padding: 14px 16px; } .header-meta { display: none; } .main-wrap { padding: 12px; gap: 16px; } .history-wrap { padding: 0 12px; } .svc-row { grid-template-columns: 20px 1fr 80px 72px; } .custom-row { grid-template-columns: 1fr 90px 60px; } .photo-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); } }
+        @media (max-width: 600px) {
+            .site-header { width: 100%; box-sizing: border-box; }
+            .header-inner { padding: 10px 12px; gap: 8px; flex-wrap: nowrap; min-width: 0; }
+            .brand { min-width: 0; flex: 1; overflow: hidden; }
+            .brand-text { min-width: 0; }
+            .brand-text h1 { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+            .brand-text p { display: none; }
+            .header-meta { display: none; }
+            .header-right { gap: 6px; flex-shrink: 0; }
+            .main-wrap { padding: 12px; gap: 16px; }
+            .history-wrap { padding: 0 12px; }
+            .svc-row { grid-template-columns: 20px 1fr 80px 72px; }
+            .custom-row { grid-template-columns: 1fr 90px 60px; }
+            .photo-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+        }
     </style>
 </head>
 <body>
@@ -315,7 +337,7 @@
                 <strong>Contractor Quote Tool</strong>
                 Northeast Ohio Rehab Estimates
             </div>
-            <button class="btn-admin" onclick="openAdminLogin()">⚙️ Admin Rates</button>
+            <button class="btn-admin" onclick="openAdminLogin()" title="Admin — Manage Rates">⚙️</button>
         </div>
     </div>
 </header>
@@ -649,8 +671,8 @@ function handlePhotoInput(files) {
     toProcess.forEach(file => {
         if (!file.type.startsWith('image/')) return;
         const reader = new FileReader();
-        reader.onload = e => compressImage(e.target.result, dataUrl => {
-            photos.push({ dataUrl, caption: '' });
+        reader.onload = e => compressImage(e.target.result, (dataUrl, w, h) => {
+            photos.push({ dataUrl, caption: '', w, h });
             renderPhotos();
         });
         reader.readAsDataURL(file);
@@ -668,7 +690,7 @@ function compressImage(src, cb) {
         const canvas = document.createElement('canvas');
         canvas.width = w; canvas.height = h;
         canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-        cb(canvas.toDataURL('image/jpeg', 0.78));
+        cb(canvas.toDataURL('image/jpeg', 0.78), w, h);
     };
     img.src = src;
 }
@@ -853,24 +875,36 @@ function buildPDF() {
         doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(14);
         doc.text('PROPERTY PHOTOS', PW/2, 14, { align:'center' });
 
-        const cols = 2, imgW = 86, imgH = 58, marginX = 14, gap = 8;
-        let px = marginX, py = 28;
+        const cols = 2, colW = 86, marginX = 14, gap = 8;
+        // Pre-calculate each photo's display height preserving aspect ratio
+        const photoSizes = photos.map(p => {
+            const ratio = (p.w && p.h) ? p.w / p.h : 4/3;
+            const h = Math.min(colW / ratio, 110); // max 110mm tall
+            return { w: colW, h };
+        });
 
-        photos.forEach((photo, i) => {
-            if (i > 0 && i % cols === 0) { py += imgH + 20; px = marginX; }
-            if (i % cols !== 0) px = marginX + imgW + gap;
-            if (py + imgH > 270) { doc.addPage(); py = 20; px = marginX; }
+        let py = 28;
+        for (let i = 0; i < photos.length; i++) {
+            const col = i % cols;
+            const px = marginX + col * (colW + gap);
+            const { w: imgW, h: imgH } = photoSizes[i];
 
-            try { doc.addImage(photo.dataUrl, 'JPEG', px, py, imgW, imgH, undefined, 'FAST'); } catch(e) {}
+            // Start of a new row (col 0, not first): advance py by previous row's max height
+            if (col === 0 && i > 0) {
+                const prevH = Math.max(photoSizes[i-2]?.h ?? 0, photoSizes[i-1]?.h ?? 0);
+                const prevCap = photos[i-2]?.caption || photos[i-1]?.caption;
+                py += prevH + (prevCap ? 14 : 8);
+            }
+            if (py + imgH > PH - 20) { doc.addPage(); py = 20; }
+
+            try { doc.addImage(photos[i].dataUrl, 'JPEG', px, py, imgW, imgH, undefined, 'FAST'); } catch(e) {}
             doc.setDrawColor(...navy); doc.rect(px, py, imgW, imgH);
 
-            if (photo.caption) {
+            if (photos[i].caption) {
                 doc.setFont('helvetica','italic'); doc.setFontSize(8); doc.setTextColor(...navy);
-                doc.text(photo.caption, px + imgW/2, py + imgH + 5, { align:'center', maxWidth: imgW });
+                doc.text(photos[i].caption, px + imgW/2, py + imgH + 5, { align:'center', maxWidth: imgW });
             }
-
-            if (i % cols === 0 && i + 1 < photos.length) px += 0;
-        });
+        }
     }
 
     // Footer on last page — anchored to actual page bottom
@@ -1139,6 +1173,11 @@ window.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => document.getElementById('gatePw').focus(), 100);
     }
 });
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
 </script>
 </body>
 </html>
