@@ -119,6 +119,15 @@
         .field input:focus, .field textarea:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(207,46,46,0.10); }
         textarea { resize: vertical; }
 
+        /* ADDRESS + LOCATE */
+        .addr-wrap { display: flex; gap: 6px; align-items: stretch; }
+        .addr-wrap input { flex: 1; min-width: 0; }
+        .btn-locate { flex-shrink: 0; width: 42px; border: 1.5px solid var(--border); border-radius: 4px; background: white; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: border-color 0.15s, background 0.15s; padding: 0; line-height: 1; }
+        .btn-locate:hover { border-color: var(--red); background: #fff5f5; }
+        .btn-locate:disabled { opacity: 0.5; cursor: not-allowed; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .btn-locate.spinning { animation: spin 0.8s linear infinite; }
+
         /* CATEGORY ACCORDION */
         .cat-section { margin-bottom: 10px; }
         .cat-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #fafafa; border: 1.5px solid var(--border); border-left: 4px solid var(--border); border-radius: 4px; cursor: pointer; user-select: none; transition: background 0.15s, border-color 0.15s; }
@@ -358,7 +367,7 @@
                     <div class="field"><label>Client Full Name</label><input type="text" id="clientName" placeholder="Jane Doe"></div>
                     <div class="field"><label>Phone Number</label><input type="tel" id="clientPhone" placeholder="(216) 555-1234" oninput="formatPhone(this)"></div>
                     <div class="field"><label>Client Email Address</label><input type="email" id="clientEmail" placeholder="owner@email.com"></div>
-                    <div class="field"><label>Property Address</label><input type="text" id="propertyAddress" placeholder="3549 West 105th St, Cleveland, OH 44111"></div>
+                    <div class="field"><label>Property Address</label><div class="addr-wrap"><input type="text" id="propertyAddress" placeholder="3549 West 105th St, Cleveland, OH 44111"><button type="button" class="btn-locate" id="locateBtn" onclick="locateAddress()" title="Auto-fill from GPS">📍</button></div></div>
                     <div class="field span2"><label>Internal Notes (not printed on quote)</label><textarea id="internalNotes" rows="2" placeholder="Access code, key location, special instructions…"></textarea></div>
                 </div>
             </div>
@@ -937,12 +946,102 @@ function emailQuote() {
     const toEmail = document.getElementById('clientEmail').value;
     const toName  = document.getElementById('clientName').value || 'Client';
     const toAddr  = document.getElementById('propertyAddress').value;
+    const phone   = document.getElementById('clientPhone').value;
+    const jobName = document.getElementById('jobName').value;
 
-    const subject = encodeURIComponent(`Your Project Estimate from Meeks Residential — Quote #${r.qNum}`);
-    const body    = encodeURIComponent(`Hi ${toName},\n\nThank you for the opportunity to work on your property${toAddr ? ` at ${toAddr}` : ''}.\n\nPlease find your project estimate attached (${filename}).\n\nPRICING SUMMARY\n───────────────────────────────\nStandard Price:          ${money(grandTotal)}\nIn-House Discount (5%):  ${money(grandTotal*0.95)}\nCash Price (10% off):    ${money(grandTotal*0.90)}\n\nPayment Terms: 50% upfront · 50% at completion\n\nPlease don't hesitate to reach out with any questions.\n\nBest regards,\nMeeks Residential\ncontactus@meeksfpm.com | meeksfpm.com`);
+    // Build full line-item list
+    const lines = [];
+    CATEGORIES.forEach(cat => {
+        cat.items.forEach(item => {
+            const cb = document.getElementById('svc_' + item.id);
+            if (!cb || !cb.checked) return;
+            const qty  = parseFloat(document.getElementById('qty_' + item.id)?.value) || 1;
+            const cost = item.rate * qty * 1.10;
+            lines.push(`  • ${item.name} (${qty} ${item.unit}) — ${money(cost)}`);
+        });
+    });
+    for (let i = 1; i <= 5; i++) {
+        const n = document.getElementById('cName_'  + i)?.value.trim();
+        const p = parseFloat(document.getElementById('cPrice_' + i)?.value) || 0;
+        if (n && p) lines.push(`  • ${n} — ${money(p * 1.10)}`);
+    }
 
-    showToast('PDF saved — attach it to the email that opens! 📎', 'info');
-    setTimeout(() => { window.location.href = `mailto:${encodeURIComponent(toEmail)}?subject=${subject}&body=${body}`; }, 900);
+    const issueDate  = new Date().toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+    const exp = new Date(); exp.setDate(exp.getDate() + 30);
+    const expDate = exp.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+
+    const body =
+`Hi ${toName},
+
+Thank you for the opportunity to work with Meeks Residential${toAddr ? ` on your property at ${toAddr}` : ''}.
+
+Your project estimate is attached as a PDF (${filename}). The complete breakdown is also included below.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MEEKS RESIDENTIAL — QUOTE #${r.qNum}
+${issueDate}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${jobName ? `Job:      ${jobName}\n` : ''}Client:   ${toName}${phone ? `\nPhone:    ${phone}` : ''}${toEmail ? `\nEmail:    ${toEmail}` : ''}${toAddr ? `\nProperty: ${toAddr}` : ''}
+
+SCOPE OF WORK
+─────────────────────────────────────────
+${lines.join('\n')}
+
+PRICING
+─────────────────────────────────────────
+  Standard Price:              ${money(grandTotal)}
+  In-House Discount (5% off):  ${money(grandTotal * 0.95)}
+  Cash Price (10% off):        ${money(grandTotal * 0.90)}
+
+PAYMENT TERMS
+  50% due at project start · 50% upon completion
+  Accepted: Cash, Check, Zelle
+
+Quote valid through: ${expDate}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Meeks Residential
+contactus@meeksfpm.com | meeksfpm.com
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Questions? Reply to this email or call us directly.`;
+
+    const subject = encodeURIComponent(`Your Project Estimate — Meeks Residential Quote #${r.qNum}`);
+    showToast('PDF saved — opening email with full quote 📎', 'info');
+    setTimeout(() => {
+        window.location.href = `mailto:${encodeURIComponent(toEmail)}?subject=${subject}&body=${encodeURIComponent(body)}`;
+    }, 900);
+}
+
+// ─── GPS ADDRESS FILL ─────────────────────────────────────────
+function locateAddress() {
+    if (!navigator.geolocation) {
+        showToast('Geolocation not supported on this device.', 'error'); return;
+    }
+    const btn = document.getElementById('locateBtn');
+    btn.textContent = '⏳'; btn.disabled = true; btn.classList.add('spinning');
+
+    navigator.geolocation.getCurrentPosition(async pos => {
+        try {
+            const { latitude: lat, longitude: lon } = pos.coords;
+            const res  = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
+                { headers: { 'Accept-Language': 'en-US,en' } }
+            );
+            const data = await res.json();
+            const a    = data.address || {};
+            const street = [a.house_number, a.road].filter(Boolean).join(' ');
+            const city   = a.city || a.town || a.village || a.suburb || a.county || '';
+            const full   = [street, city, a.state, a.postcode].filter(Boolean).join(', ');
+            document.getElementById('propertyAddress').value = full;
+            showToast('Address filled from GPS 📍', 'success');
+        } catch(e) {
+            showToast('Reverse geocode failed — check connection.', 'error');
+        }
+        btn.textContent = '📍'; btn.disabled = false; btn.classList.remove('spinning');
+    }, () => {
+        showToast('Location access denied or unavailable.', 'error');
+        btn.textContent = '📍'; btn.disabled = false; btn.classList.remove('spinning');
+    }, { timeout: 12000, enableHighAccuracy: true });
 }
 
 // ─── SAVE / HISTORY ──────────────────────────────────────────
