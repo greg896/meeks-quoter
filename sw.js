@@ -1,4 +1,4 @@
-const CACHE = 'meeks-quoter-v8';
+const CACHE = 'meeks-quoter-v9';
 const ASSETS = [
     '/',
     '/index.html',
@@ -7,9 +7,13 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', e => {
-    e.waitUntil(
-        caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())
-    );
+    // Do NOT skipWaiting — let the update banner control activation
+    e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)));
+});
+
+// Banner taps send SKIP_WAITING → activates new SW → page reloads
+self.addEventListener('message', e => {
+    if (e.data === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('activate', e => {

@@ -1377,9 +1377,57 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 </script>
+<div id="updateBanner">
+    <span>🔄&nbsp; A new version is available</span>
+    <button id="updateBtn">Tap to update →</button>
+</div>
+<style>
+#updateBanner {
+    display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 9998;
+    background: var(--navy); color: white;
+    padding: 14px 20px; gap: 14px;
+    align-items: center; justify-content: space-between;
+    box-shadow: 0 -3px 16px rgba(0,0,0,0.25);
+    font-size: 14px; font-weight: 500;
+}
+#updateBanner.show { display: flex; }
+#updateBtn {
+    background: var(--red); color: white; border: none; border-radius: 4px;
+    padding: 8px 16px; font-size: 13px; font-weight: 700;
+    cursor: pointer; white-space: nowrap; font-family: inherit;
+}
+</style>
 <script>
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+    window.addEventListener('load', async () => {
+        const reg = await navigator.serviceWorker.register('sw.js').catch(() => null);
+        if (!reg) return;
+
+        const showBanner = () => {
+            const banner = document.getElementById('updateBanner');
+            const btn    = document.getElementById('updateBtn');
+            banner.classList.add('show');
+            btn.onclick = () => {
+                if (reg.waiting) reg.waiting.postMessage('SKIP_WAITING');
+            };
+        };
+
+        // New SW found during this page load
+        reg.addEventListener('updatefound', () => {
+            const sw = reg.installing;
+            sw.addEventListener('statechange', () => {
+                if (sw.state === 'installed' && navigator.serviceWorker.controller) {
+                    showBanner();
+                }
+            });
+        });
+
+        // SW already waiting (tab was open when update arrived)
+        if (reg.waiting && navigator.serviceWorker.controller) showBanner();
+
+        // Reload once new SW takes control
+        navigator.serviceWorker.addEventListener('controllerchange', () => location.reload());
+    });
 }
 </script>
 </body>
