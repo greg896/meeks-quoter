@@ -15,7 +15,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html { overflow-x: hidden; }
+        body { overflow-x: hidden; max-width: 100%; }
 
         /* ── FULL-APP LOGIN GATE ── */
         #appGate {
@@ -131,7 +133,7 @@
         .cat-items.open { display: block; }
 
         /* SERVICE ROW */
-        .svc-row { display: grid; grid-template-columns: 20px 1fr auto 80px 80px; align-items: center; gap: 10px; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 4px; margin-bottom: 5px; background: white; transition: border-color 0.15s, background 0.15s; }
+        .svc-row { display: grid; grid-template-columns: 20px 1fr auto auto; align-items: center; gap: 10px; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 4px; margin-bottom: 5px; background: white; transition: border-color 0.15s, background 0.15s; }
         .svc-row:hover { border-color: #e8a0a0; background: #fffafa; }
         .svc-row.checked { border-color: var(--red); background: #fff5f5; }
         .svc-row input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--red); cursor: pointer; }
@@ -280,7 +282,7 @@
         .site-footer a:hover { color: white; }
 
         /* RESPONSIVE */
-        @media (max-width: 960px) { .main-wrap { grid-template-columns: 1fr; padding: 16px; } .sidebar { position: relative; top: 0; } .form-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 960px) { .main-wrap { grid-template-columns: 1fr; padding: 16px; max-width: 100%; } .sidebar { position: relative; top: 0; } .form-grid { grid-template-columns: 1fr; } }
         @media (max-width: 600px) {
             .site-header { width: 100%; box-sizing: border-box; }
             .header-inner { padding: 10px 12px; gap: 8px; }
@@ -288,8 +290,11 @@
             .brand-text p { display: none; }
             .main-wrap { padding: 12px; gap: 16px; }
             .history-wrap { padding: 0 12px; }
-            .svc-row { grid-template-columns: 20px 1fr 80px 72px; }
-            .custom-row { grid-template-columns: 1fr 90px 60px; }
+            .svc-row { grid-template-columns: 20px 1fr auto auto; gap: 6px; }
+            .qty-unit { display: none; }
+            .qty-input { width: 58px; padding: 6px 6px; font-size: 12px; }
+            .svc-cost { font-size: 12px; min-width: 52px; }
+            .custom-row { grid-template-columns: 1fr 86px 56px; gap: 6px; }
             .photo-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
         }
     </style>
