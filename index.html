@@ -234,11 +234,17 @@
         /* HISTORY */
         .history-wrap { max-width: 1280px; margin: 0 auto 48px; padding: 0 28px; }
         .history-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 14px; margin-top: 4px; }
-        .hist-card { background: white; border-radius: 4px; padding: 16px; box-shadow: var(--shadow); border-left: 4px solid var(--red); border: 1px solid var(--border); border-left: 4px solid var(--red); }
+        .hist-wrap { position: relative; border-radius: 4px; overflow: hidden; }
+        .hist-behind { position: absolute; inset: 0; display: flex; align-items: center; border-radius: 4px; pointer-events: none; }
+        .hist-behind-left  { background: var(--red);  justify-content: flex-end;   padding-right: 18px; color: white; font-size: 22px; opacity: 0; transition: opacity 0.15s; }
+        .hist-behind-right { background: var(--navy); justify-content: flex-start; padding-left:  18px; color: white; font-size: 22px; opacity: 0; transition: opacity 0.15s; }
+        .hist-card { background: white; border-radius: 4px; padding: 16px; box-shadow: var(--shadow); border-left: 4px solid var(--red); border: 1px solid var(--border); border-left: 4px solid var(--red); position: relative; transition: transform 0.25s ease; cursor: grab; user-select: none; }
+        .hist-card.no-anim { transition: none; }
         .hist-name { font-size: 14px; font-weight: 700; }
         .hist-addr { font-size: 11px; color: var(--muted); margin: 2px 0 6px; }
         .hist-total { font-size: 20px; font-weight: 800; color: var(--red); }
         .hist-date { font-size: 10px; color: var(--muted); margin-top: 2px; }
+        .hist-hint { font-size: 10px; color: var(--muted); margin-top: 6px; opacity: 0.6; font-style: italic; }
         .hist-actions { display: flex; gap: 7px; margin-top: 11px; }
         .hist-actions .btn { flex: none; padding: 7px 12px; font-size: 11px; }
 
@@ -950,9 +956,10 @@ function emailQuote() {
     // Auto-save to history (no PDF download prompt)
     saveQuote();
 
-    // Build line items — plain ASCII, no unicode, lines kept short
-    const SEP  = '----------------------------------------';
-    const SSEP = '  ' + '-'.repeat(36);
+    // Build line items — plain ASCII, no unicode
+    const SEP  = '------------------------------------';
+    const HSEP = '====================================';
+    const SSEP = '  ' + '-'.repeat(32);
 
     const itemLines = [];
     CATEGORIES.forEach(cat => {
@@ -998,25 +1005,18 @@ function emailQuote() {
     const body =
 `Dear ${toName},
 
-Thank you so much for the opportunity to work with Meeks
-Residential. We truly value your business and are excited
-about the possibility of transforming your property.
+Thank you so much for the opportunity to work with Meeks Residential. We truly value your business and look forward to transforming your property.
 
-Your official project estimate (Quote #${r.qNum}) is detailed
-below for your review.
+Your official project estimate is detailed below for your review.
 
-** ACTION REQUESTED **
-The sooner we receive your approval to move forward, the
-faster we can secure your spot on our schedule. Our calendar
-fills up quickly -- simply reply to this email with "Approved"
-or give us a call and we will get you locked in right away.
+** READY TO MOVE FORWARD? **
+The sooner we receive your approval, the faster we can lock in your spot on our schedule. Our calendar fills quickly -- simply reply "Approved" or give us a call and we will get you started right away.
 
-========================================
-  MEEKS RESIDENTIAL
-  Project Estimate  |  Quote #${r.qNum}
-  Issued:  ${issueDate}
-  Expires: ${expDate}
-========================================
+${HSEP}
+MEEKS RESIDENTIAL
+Project Estimate  |  Quote #${r.qNum}
+Issued: ${issueDate}  |  Expires: ${expDate}
+${HSEP}
 
 PROJECT DETAILS
 ${SEP}
@@ -1029,33 +1029,26 @@ ${SEP}
 
 PRICING OPTIONS
 ${SEP}
-  Standard Price:           ${money(grandTotal)}
-  In-House Discount (5%):   ${money(grandTotal * 0.95)}
-  Cash Price (10% off):     ${money(grandTotal * 0.90)}
+  Standard Price:         ${money(grandTotal)}
+  In-House (5% off):      ${money(grandTotal * 0.95)}
+  Cash Price (10% off):   ${money(grandTotal * 0.90)}
 ${SEP}
 
 PAYMENT TERMS
-  50% due at project start
-  50% due upon completion
+  50% at project start · 50% upon completion
   Accepted: Cash, Check, Zelle
 
 NEXT STEPS
-  1. Reply "Approved" to this email, OR
-  2. Call us to confirm and schedule
+  1. Reply "Approved" to this email
+  2. Call us to confirm your start date
   3. Submit your 50% deposit to begin
 
-Don't wait -- spots fill fast and we want to make sure
-your project gets the attention it deserves.
-
-We look forward to earning your trust and delivering
-outstanding results on your property.
+Spots fill fast -- we want to make sure your project gets the priority it deserves. We look forward to delivering outstanding results.
 
 With appreciation,
-
 Meeks Residential
-contactus@meeksfpm.com
-meeksfpm.com
-========================================`;
+contactus@meeksfpm.com | meeksfpm.com
+${HSEP}`;
 
     const subject = encodeURIComponent(`Your Project Estimate - Meeks Residential Quote #${r.qNum}`);
     showToast('Quote saved — opening email ✉️', 'success');
@@ -1163,10 +1156,11 @@ function loadQuote(id) {
     showToast('Quote loaded!', 'success');
 }
 
-function deleteQuote(id) {
-    if (!confirm('Delete this saved quote?')) return;
+function deleteQuote(id, silent) {
+    if (!silent && !confirm('Delete this saved quote?')) return;
     localStorage.setItem('meeksQuotes', JSON.stringify(getHist().filter(q => q.id !== id)));
-    renderHistory(); showToast('Quote deleted.', 'info');
+    renderHistory();
+    if (!silent) showToast('Quote deleted.', 'info');
 }
 
 function getHist() { try { return JSON.parse(localStorage.getItem('meeksQuotes')||'[]'); } catch { return []; } }
@@ -1175,17 +1169,69 @@ function renderHistory() {
     const hist = getHist(), el = document.getElementById('historyGrid');
     if (!hist.length) { el.innerHTML='<p style="color:var(--muted);font-size:13px;">No saved quotes yet — click "Save Quote" to keep a record.</p>'; return; }
     el.innerHTML = hist.map(q => `
-        <div class="hist-card">
-            ${q.jobName ? `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--red);margin-bottom:3px;">${q.jobName}</div>` : ''}
-            <div class="hist-name">${q.client.name||'Unknown Client'}</div>
-            <div class="hist-addr">${q.client.addr||'No address on file'}</div>
-            <div class="hist-total">${money(q.totals.std)}</div>
-            <div class="hist-date">Saved ${q.date}</div>
-            <div class="hist-actions">
-                <button class="btn btn-navy"  onclick="loadQuote(${q.id})">Load</button>
-                <button class="btn btn-ghost" onclick="deleteQuote(${q.id})">Delete</button>
+        <div class="hist-wrap" data-id="${q.id}">
+            <div class="hist-behind hist-behind-right">📄</div>
+            <div class="hist-behind hist-behind-left">🗑️</div>
+            <div class="hist-card">
+                ${q.jobName ? `<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--red);margin-bottom:3px;">${q.jobName}</div>` : ''}
+                <div class="hist-name">${q.client.name||'Unknown Client'}</div>
+                <div class="hist-addr">${q.client.addr||'No address on file'}</div>
+                <div class="hist-total">${money(q.totals.std)}</div>
+                <div class="hist-date">Saved ${q.date}</div>
+                <div class="hist-hint">← swipe left to delete &nbsp;|&nbsp; swipe right for PDF →</div>
+                <div class="hist-actions">
+                    <button class="btn btn-navy"  onclick="loadQuote(${q.id})">Load</button>
+                    <button class="btn btn-ghost" onclick="deleteQuote(${q.id})">Delete</button>
+                </div>
             </div>
         </div>`).join('');
+    attachSwipeHandlers();
+}
+
+function attachSwipeHandlers() {
+    document.querySelectorAll('.hist-wrap').forEach(wrap => {
+        const card  = wrap.querySelector('.hist-card');
+        const revL  = wrap.querySelector('.hist-behind-left');
+        const revR  = wrap.querySelector('.hist-behind-right');
+        const id    = parseInt(wrap.dataset.id);
+        const THRESHOLD = 72;
+        let startX = 0, dx = 0, active = false;
+
+        card.addEventListener('touchstart', e => {
+            startX = e.touches[0].clientX;
+            dx = 0; active = true;
+            card.classList.add('no-anim');
+        }, { passive: true });
+
+        card.addEventListener('touchmove', e => {
+            if (!active) return;
+            dx = e.touches[0].clientX - startX;
+            card.style.transform = `translateX(${dx}px)`;
+            // Fade in the relevant background
+            revL.style.opacity = dx < 0 ? Math.min(1, -dx / THRESHOLD) : 0;
+            revR.style.opacity = dx > 0 ? Math.min(1, dx  / THRESHOLD) : 0;
+        }, { passive: true });
+
+        card.addEventListener('touchend', () => {
+            active = false;
+            card.classList.remove('no-anim');
+            if (dx < -THRESHOLD) {
+                // Swipe left → delete
+                card.style.transform = 'translateX(-110%)';
+                setTimeout(() => { deleteQuote(id, true); showToast('Quote deleted.', 'info'); }, 220);
+            } else if (dx > THRESHOLD) {
+                // Swipe right → download PDF for this quote
+                card.style.transform = 'translateX(0)';
+                revR.style.opacity = 0;
+                loadQuote(id);
+                setTimeout(() => { downloadPDF(); showToast('PDF downloading 📄', 'success'); }, 120);
+            } else {
+                card.style.transform = 'translateX(0)';
+                revL.style.opacity = 0;
+                revR.style.opacity = 0;
+            }
+        });
+    });
 }
 
 function newQuote() {
