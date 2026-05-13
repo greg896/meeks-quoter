@@ -77,6 +77,7 @@
             0%,100%{transform:translateX(0)} 20%{transform:translateX(-8px)} 40%{transform:translateX(8px)} 60%{transform:translateX(-5px)} 80%{transform:translateX(5px)}
         }
 
+        /* ── DESIGN TOKENS ── */
         :root {
             --red: #cf2e2e; --red-dark: #a82424; --red-light: #e04444;
             --navy: #1a365d; --navy-dark: #0f2040; --navy-light: #2a4a7a;
@@ -88,7 +89,7 @@
         }
         body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-        /* HEADER */
+        /* ── HEADER ── */
         .site-header { background: #ffffff; color: var(--text); border-bottom: 3px solid var(--red); box-shadow: 0 2px 8px rgba(26,54,93,0.08); position: sticky; top: 0; z-index: 500; }
         .header-inner { max-width: 1280px; margin: 0 auto; padding: 16px 28px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
         .brand { display: flex; align-items: center; gap: 14px; }
@@ -98,10 +99,10 @@
         .btn-admin { background: transparent; border: 1.5px solid var(--border); color: var(--muted); padding: 0; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; }
         .btn-admin:hover { border-color: var(--navy); color: var(--navy); background: #eef2f8; }
 
-        /* LAYOUT */
+        /* ── LAYOUT ── */
         .main-wrap { max-width: 1280px; margin: 0 auto; padding: 24px 28px; display: grid; grid-template-columns: 1fr 360px; gap: 24px; align-items: start; }
 
-        /* CARDS */
+        /* ── CARDS ── */
         .card { background: var(--card); border-radius: 4px; box-shadow: var(--shadow); overflow: hidden; margin-bottom: 20px; border: 1px solid var(--border); }
         .card:last-child { margin-bottom: 0; }
         .card-header { background: var(--navy); color: white; padding: 13px 20px; display: flex; align-items: center; gap: 10px; }
@@ -110,7 +111,7 @@
         .card-header .note { font-size: 11px; opacity: 0.75; margin-left: auto; }
         .card-body { padding: 20px; }
 
-        /* FORM */
+        /* ── FORM FIELDS ── */
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
         .span2 { grid-column: 1 / -1; }
         .field { display: flex; flex-direction: column; gap: 5px; }
@@ -119,7 +120,7 @@
         .field input:focus, .field textarea:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(207,46,46,0.10); }
         textarea { resize: vertical; }
 
-        /* ADDRESS + LOCATE */
+        /* ── ADDRESS + GPS LOCATE BUTTON ── */
         .addr-wrap { display: flex; gap: 6px; align-items: stretch; }
         .addr-wrap input { flex: 1; min-width: 0; }
         .btn-locate { flex-shrink: 0; width: 42px; border: 1.5px solid var(--border); border-radius: 4px; background: white; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; transition: border-color 0.15s, background 0.15s; padding: 0; line-height: 1; }
@@ -128,7 +129,7 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .btn-locate.spinning { animation: spin 0.8s linear infinite; }
 
-        /* CATEGORY ACCORDION */
+        /* ── CATEGORY ACCORDION ── */
         .cat-section { margin-bottom: 10px; }
         .cat-header { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #fafafa; border: 1.5px solid var(--border); border-left: 4px solid var(--border); border-radius: 4px; cursor: pointer; user-select: none; transition: background 0.15s, border-color 0.15s; }
         .cat-header:hover { background: #fff0f0; border-color: #e8a0a0; border-left-color: var(--red); }
@@ -141,7 +142,7 @@
         .cat-items { display: none; padding-top: 8px; }
         .cat-items.open { display: block; }
 
-        /* SERVICE ROW */
+        /* ── SERVICE ROWS ── */
         .svc-row { display: grid; grid-template-columns: 20px 1fr auto auto; align-items: center; gap: 10px; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: 4px; margin-bottom: 5px; background: white; transition: border-color 0.15s, background 0.15s; }
         .svc-row:hover { border-color: #e8a0a0; background: #fffafa; }
         .svc-row.checked { border-color: var(--red); background: #fff5f5; }
@@ -155,24 +156,24 @@
         .svc-cost { font-size: 13px; font-weight: 700; color: #bbb; text-align: right; white-space: nowrap; }
         .svc-cost.live { color: var(--red); }
 
-        /* SERVICE COUNT BADGE */
+        /* ── SERVICE COUNT BADGE + CLEAR BUTTON ── */
         .svc-count-badge { background: rgba(255,255,255,0.25); border-radius: 20px; padding: 2px 9px; font-size: 11px; font-weight: 700; margin-left: 6px; display: none; }
         .svc-count-badge.visible { display: inline-block; }
         .clear-all-btn { background: none; border: none; color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 600; cursor: pointer; margin-left: auto; padding: 2px 6px; border-radius: 3px; transition: color 0.15s; }
         .clear-all-btn:hover { color: white; }
 
-        /* VALIDITY BADGE */
+        /* ── VALIDITY BADGE ── */
         .validity-note { display: flex; align-items: center; gap: 6px; background: #eef2f8; border: 1px solid var(--border); border-radius: 4px; padding: 7px 12px; font-size: 11px; color: var(--navy); margin-bottom: 10px; font-weight: 500; }
         .validity-note span { font-size: 14px; }
 
-        /* CUSTOM ITEMS */
+        /* ── CUSTOM LINE ITEMS ── */
         .custom-header { display: grid; grid-template-columns: 1fr 110px 70px; gap: 8px; margin-bottom: 5px; }
         .custom-header span { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); }
         .custom-row { display: grid; grid-template-columns: 1fr 110px 70px; gap: 8px; margin-bottom: 8px; }
         .custom-row input { padding: 9px 11px; border: 1.5px solid var(--border); border-radius: 4px; font-family: inherit; font-size: 13px; outline: none; color: var(--text); }
         .custom-row input:focus { border-color: var(--red); }
 
-        /* PHOTOS */
+        /* ── PHOTOS ── */
         .photo-drop {
             border: 2px dashed #ddd; border-radius: 4px;
             padding: 28px 20px; text-align: center; cursor: pointer;
@@ -193,7 +194,7 @@
         .photo-remove:hover { background: var(--red); }
         .photo-count { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
 
-        /* SIDEBAR */
+        /* ── SIDEBAR — LIVE QUOTE SUMMARY ── */
         .sidebar { position: sticky; top: 24px; }
         .summary-card { background: var(--card); border-radius: 4px; box-shadow: var(--shadow-lg); overflow: hidden; border: 1px solid var(--border); }
         .summary-head { background: var(--navy); color: white; padding: 16px 20px; }
@@ -231,7 +232,7 @@
         .btn-ghost:hover  { border-color: var(--red); color: var(--red); }
         .disclaimer { font-size: 10px; color: var(--muted); line-height: 1.5; margin-top: 12px; font-style: italic; }
 
-        /* HISTORY */
+        /* ── HISTORY CARDS ── */
         .history-wrap { max-width: 1280px; margin: 0 auto 48px; padding: 0 28px; }
         .history-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 14px; margin-top: 4px; }
         .hist-wrap { position: relative; border-radius: 4px; overflow: hidden; }
@@ -248,7 +249,7 @@
         .hist-actions { display: flex; gap: 7px; margin-top: 11px; }
         .hist-actions .btn { flex: none; padding: 7px 12px; font-size: 11px; }
 
-        /* MODAL */
+        /* ── MODALS (login, admin panel, change password) ── */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); backdrop-filter: blur(3px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
         .modal-overlay.open { opacity: 1; pointer-events: all; }
         .modal { background: white; border-radius: 4px; border-top: 4px solid var(--navy); box-shadow: 0 24px 64px rgba(0,0,0,0.2); width: 100%; max-width: 560px; overflow: hidden; transform: translateY(20px); transition: transform 0.25s; }
@@ -283,20 +284,20 @@
         .pw-field input:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(207,46,46,0.10); }
         .info-box { background: #fff5f5; border: 1px solid #fcc; border-radius: 4px; padding: 11px 14px; font-size: 12px; color: var(--red-dark); margin-bottom: 16px; line-height: 1.5; }
 
-        /* TOAST */
+        /* ── TOAST NOTIFICATION ── */
         .toast { position: fixed; bottom: 24px; right: 24px; background: var(--navy); color: white; padding: 13px 18px; border-radius: 4px; font-size: 13px; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,0.25); z-index: 9999; display: flex; align-items: center; gap: 10px; transform: translateY(80px); opacity: 0; transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); max-width: 340px; }
         .toast.show { transform: translateY(0); opacity: 1; }
         .toast.success { border-left: 4px solid #4caf50; }
         .toast.error   { border-left: 4px solid var(--red); }
         .toast.info    { border-left: 4px solid #888; }
 
-        /* FOOTER */
+        /* ── FOOTER ── */
         .site-footer { background: var(--red); color: rgba(255,255,255,0.85); text-align: center; padding: 18px 28px; font-size: 12px; margin-top: 40px; }
         .site-footer strong { color: white; }
         .site-footer a { color: rgba(255,255,255,0.6); text-decoration: none; }
         .site-footer a:hover { color: white; }
 
-        /* RESPONSIVE */
+        /* ── RESPONSIVE BREAKPOINTS ── */
         @media (max-width: 960px) { .main-wrap { display: block; padding: 16px; max-width: 100%; } .sidebar { position: relative; top: 0; } .form-grid { grid-template-columns: 1fr; } .card { margin-bottom: 20px; } }
         @media (max-width: 600px) {
             .site-header { width: 100%; box-sizing: border-box; }
@@ -516,7 +517,7 @@
 <div class="toast" id="toast"></div>
 
 <script>
-// ─── DATA ───────────────────────────────────────────────────
+// ─── DATA — default service catalog with base rates ───────────
 const DEFAULTS = [
     { id:'painting',   icon:'🎨', name:'Painting & Prep', items:[
         { id:1,  name:'Interior Painting',              rate:450,   unit:'Room',      label:'Rooms',    qty:1    },
@@ -575,6 +576,7 @@ const PW_KEY    = '__mrpw__';
 const RATES_KEY = '__mrrates__';
 const MAX_PHOTOS = 10;
 
+// Merge admin-overridden rates on top of DEFAULTS; fall back to DEFAULTS on parse error
 function getCategories() {
     try {
         const saved = JSON.parse(localStorage.getItem(RATES_KEY) || '{}');
@@ -587,7 +589,7 @@ let grandTotal  = 0;
 let selected    = [];
 let photos      = []; // { dataUrl, caption }
 
-// ─── BUILD UI ────────────────────────────────────────────────
+// ─── UI CONSTRUCTION ─────────────────────────────────────────
 function buildUI() {
     const container = document.getElementById('servicesContainer');
     container.innerHTML = '';
@@ -632,6 +634,7 @@ function buildUI() {
         }
     }
 
+    // Expand all categories by default on desktop; leave collapsed on mobile to reduce scrolling
     if (window.innerWidth > 960) {
         CATEGORIES.forEach(cat => {
             document.getElementById('catItems_' + cat.id)?.classList.add('open');
@@ -703,8 +706,8 @@ function handlePhotoInput(files) {
 function compressImage(src, cb) {
     const img = new Image();
     img.onload = () => {
-        // Cap longest edge at 1200px for good print quality;
-        // JPEG quality 0.62 keeps 10-photo PDFs manageable (<8 MB)
+        // Cap longest edge at 1200px — sufficient for PDF print quality
+        // JPEG quality 0.62 keeps a 10-photo PDF under ~8 MB
         const MAX = 1200;
         let w = img.width, h = img.height;
         if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
@@ -758,6 +761,7 @@ function recalc() {
             if (!cb) return;
             const qty = parseFloat(qEl.value) || 0;
             if (cb.checked && qty > 0) {
+                // 10% operational premium applied to all catalog service lines
                 const line = item.rate * 1.10 * qty;
                 catAmt += line; total += line;
                 cEl.textContent = money(line); cEl.classList.add('live');
@@ -775,8 +779,8 @@ function recalc() {
     }
     grandTotal = total;
     document.getElementById('priceStd').textContent  = money(total);
-    document.getElementById('priceDisc').textContent = money(total * 0.95);
-    document.getElementById('priceCash').textContent = money(total * 0.90);
+    document.getElementById('priceDisc').textContent = money(total * 0.95); // 5% in-house discount
+    document.getElementById('priceCash').textContent = money(total * 0.90); // 10% cash discount
     const badge = document.getElementById('svcCount');
     const clearBtn = document.getElementById('clearAllBtn');
     if (badge) { badge.textContent = selected.length + ' selected'; badge.classList.toggle('visible', selected.length > 0); }
@@ -794,7 +798,7 @@ function renderLineItems() {
     ).join('');
 }
 
-// ─── PDF ─────────────────────────────────────────────────────
+// ─── PDF GENERATION ──────────────────────────────────────────
 function buildPDF() {
     if (grandTotal === 0) { showToast('Select at least one service first.', 'error'); return null; }
     if (!window.jspdf)    { showToast('PDF library still loading — try again in a moment.', 'error'); return null; }
@@ -813,6 +817,7 @@ function buildPDF() {
     const qDate  = issueDate.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
     const expiry = new Date(issueDate); expiry.setDate(expiry.getDate() + 30);
     const qExpiry = expiry.toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
+    // Quote number: "MR-" prefix + last 6 digits of epoch ms — cheap unique ID, no server needed
     const qNum   = 'MR-' + Date.now().toString().slice(-6);
 
     // Header — red band with navy accent bar
@@ -897,11 +902,12 @@ function buildPDF() {
         doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(14);
         doc.text('PROPERTY PHOTOS', PW/2, 14, { align:'center' });
 
+        // 2-column grid; each column is 86mm wide with an 8mm gap
         const cols = 2, colW = 86, marginX = 14, gap = 8;
-        // Pre-calculate each photo's display height preserving aspect ratio
+        // Pre-calculate each photo's display height to preserve aspect ratio
         const photoSizes = photos.map(p => {
-            const ratio = (p.w && p.h) ? p.w / p.h : 4/3;
-            const h = Math.min(colW / ratio, 110); // max 110mm tall
+            const ratio = (p.w && p.h) ? p.w / p.h : 4/3; // fallback to 4:3 if dimensions unknown
+            const h = Math.min(colW / ratio, 110); // cap at 110mm so tall portraits don't overflow
             return { w: colW, h };
         });
 
@@ -911,11 +917,11 @@ function buildPDF() {
             const px = marginX + col * (colW + gap);
             const { w: imgW, h: imgH } = photoSizes[i];
 
-            // Start of a new row (col 0, not first): advance py by previous row's max height
+            // Advance py at the start of each new row using the tallest photo from the previous row
             if (col === 0 && i > 0) {
                 const prevH = Math.max(photoSizes[i-2]?.h ?? 0, photoSizes[i-1]?.h ?? 0);
                 const prevCap = photos[i-2]?.caption || photos[i-1]?.caption;
-                py += prevH + (prevCap ? 14 : 8);
+                py += prevH + (prevCap ? 14 : 8); // extra space when a caption is present
             }
             if (py + imgH > PH - 20) { doc.addPage(); py = 20; }
 
@@ -929,7 +935,7 @@ function buildPDF() {
         }
     }
 
-    // Footer on last page — anchored to actual page bottom
+    // Footer rendered after photos so it lands on the last page, not a fixed page number
     const PH = doc.internal.pageSize.getHeight();
     doc.setFillColor(...navy); doc.rect(0, PH-14, PW, 14, 'F');
     doc.setFillColor(...red);  doc.rect(0, PH-14, PW,  2, 'F');
@@ -955,10 +961,10 @@ function emailQuote() {
     const phone   = document.getElementById('clientPhone').value;
     const jobName = document.getElementById('jobName').value;
 
-    // Auto-save to history (no PDF download prompt)
+    // Silently save to history before opening the mailto link
     saveQuote();
 
-    // Build line items — plain ASCII, no unicode
+    // Build line items as plain ASCII dot-leaders for the email body (no unicode, max mail-client compat)
     const SEP  = '--------------------------';
     const HSEP = '==========================';
     const SSEP = '  ' + '-'.repeat(22);
@@ -1055,12 +1061,13 @@ ${HSEP}`;
     const subject = encodeURIComponent(`Your Project Estimate - Meeks Residential Quote #${r.qNum}`);
     showToast('Quote saved — opening email ✉️', 'success');
     setTimeout(() => {
-        // Note: toEmail must NOT be encoded — @ must stay literal in mailto:addr
+        // toEmail intentionally not encoded — the @ must remain a literal character in the mailto address
         window.location.href = `mailto:${toEmail}?subject=${subject}&body=${encodeURIComponent(body)}`;
-    }, 800);
+    }, 800); // short delay lets the "Quote saved" toast show before the mail client opens
 }
 
-// ─── GPS ADDRESS FILL ─────────────────────────────────────────
+// ─── GPS ADDRESS FILL ────────────────────────────────────────
+// Uses the browser Geolocation API then reverse-geocodes via Nominatim (free, no API key)
 function locateAddress() {
     if (!navigator.geolocation) {
         showToast('Geolocation not supported on this device.', 'error'); return;
@@ -1071,6 +1078,7 @@ function locateAddress() {
     navigator.geolocation.getCurrentPosition(async pos => {
         try {
             const { latitude: lat, longitude: lon } = pos.coords;
+            // Nominatim reverse-geocode: returns structured address fields from lat/lon
             const res  = await fetch(
                 `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`,
                 { headers: { 'Accept-Language': 'en-US,en' } }
@@ -1078,6 +1086,7 @@ function locateAddress() {
             const data = await res.json();
             const a    = data.address || {};
             const street = [a.house_number, a.road].filter(Boolean).join(' ');
+            // Cascade through locality fields — urban areas use city, rural areas may only have county
             const city   = a.city || a.town || a.village || a.suburb || a.county || '';
             const full   = [street, city, a.state, a.postcode].filter(Boolean).join(', ');
             document.getElementById('propertyAddress').value = full;
@@ -1092,7 +1101,7 @@ function locateAddress() {
     }, { timeout: 12000, enableHighAccuracy: true });
 }
 
-// ─── SAVE / HISTORY ──────────────────────────────────────────
+// ─── QUOTE HISTORY (save / load / delete) ────────────────────
 function saveQuote() {
     if (grandTotal === 0) { showToast('Select at least one service before saving.', 'error'); return; }
     const checkedMap = {}, qtyMap = {};
@@ -1119,7 +1128,7 @@ function saveQuote() {
     };
 
     const hist = getHist(); hist.unshift(quote);
-    if (hist.length > 60) hist.pop();
+    if (hist.length > 60) hist.pop(); // cap history at 60 quotes to keep localStorage size reasonable
     localStorage.setItem('meeksQuotes', JSON.stringify(hist));
     renderHistory();
     showToast('Quote saved to history!', 'success');
@@ -1190,13 +1199,15 @@ function renderHistory() {
     attachSwipeHandlers();
 }
 
+// ─── SWIPE GESTURES (history cards) ──────────────────────────
+// Left swipe → delete; right swipe → load + download PDF
 function attachSwipeHandlers() {
     document.querySelectorAll('.hist-wrap').forEach(wrap => {
         const card  = wrap.querySelector('.hist-card');
         const revL  = wrap.querySelector('.hist-behind-left');
         const revR  = wrap.querySelector('.hist-behind-right');
         const id    = parseInt(wrap.dataset.id);
-        const THRESHOLD = 72;
+        const THRESHOLD = 72; // px — minimum drag distance to trigger an action
         let startX = 0, dx = 0, active = false;
 
         card.addEventListener('touchstart', e => {
@@ -1209,7 +1220,7 @@ function attachSwipeHandlers() {
             if (!active) return;
             dx = e.touches[0].clientX - startX;
             card.style.transform = `translateX(${dx}px)`;
-            // Fade in the relevant background
+            // Fade in the action hint proportionally to how far the user has swiped
             revL.style.opacity = dx < 0 ? Math.min(1, -dx / THRESHOLD) : 0;
             revR.style.opacity = dx > 0 ? Math.min(1, dx  / THRESHOLD) : 0;
         }, { passive: true });
@@ -1251,7 +1262,7 @@ function newQuote() {
     photos=[]; renderPhotos(); recalc(); showToast('New quote started.', 'info');
 }
 
-// ─── ADMIN ───────────────────────────────────────────────────
+// ─── ADMIN — rate management + password ──────────────────────
 function getStoredPw() { return localStorage.getItem(PW_KEY) || DEFAULT_PASSWORD; }
 
 function openAdminLogin() {
@@ -1350,12 +1361,13 @@ function showToast(msg, type='info') {
     clearTimeout(toastTmr); toastTmr = setTimeout(() => t.classList.remove('show'), 3500);
 }
 
-// ─── APP GATE ────────────────────────────────────────────────
+// ─── APP GATE — staff password screen ────────────────────────
 function gateLogin() {
     const pw  = document.getElementById('gatePw').value;
     const inp = document.getElementById('gatePw');
     const err = document.getElementById('gateError');
     if (pw === getStoredPw()) {
+        // Persist unlock for the current browser tab session only (not across tab closes)
         sessionStorage.setItem('mrUnlocked', '1');
         document.getElementById('appGate').classList.add('unlocked');
         err.classList.remove('show');
@@ -1371,7 +1383,7 @@ function gateLogin() {
 // ─── INIT ────────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
     buildUI(); recalc(); renderHistory();
-    // Check if already unlocked this session
+    // Skip the gate if the user already authenticated in this session (e.g. after a page reload)
     if (sessionStorage.getItem('mrUnlocked') === '1') {
         document.getElementById('appGate').classList.add('unlocked');
     } else {
@@ -1400,6 +1412,10 @@ window.addEventListener('DOMContentLoaded', () => {
 }
 </style>
 <script>
+// ─── SERVICE WORKER — PWA update flow ────────────────────────
+// When a new SW is found and installed, show an update banner instead of auto-reloading.
+// The user taps the banner → we send SKIP_WAITING → the new SW activates →
+// controllerchange fires → page reloads to pick up the latest assets.
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
         const reg = await navigator.serviceWorker.register('sw.js').catch(() => null);
@@ -1409,25 +1425,27 @@ if ('serviceWorker' in navigator) {
             const banner = document.getElementById('updateBanner');
             const btn    = document.getElementById('updateBtn');
             banner.classList.add('show');
+            // Tapping the button tells the waiting SW to skip its waiting phase and take control
             btn.onclick = () => {
                 if (reg.waiting) reg.waiting.postMessage('SKIP_WAITING');
             };
         };
 
-        // New SW found during this page load
+        // New SW discovered and installing during this page load
         reg.addEventListener('updatefound', () => {
             const sw = reg.installing;
             sw.addEventListener('statechange', () => {
+                // 'installed' + existing controller means a new version is ready but not yet active
                 if (sw.state === 'installed' && navigator.serviceWorker.controller) {
                     showBanner();
                 }
             });
         });
 
-        // SW already waiting (tab was open when update arrived)
+        // Handle the case where the tab was already open when the SW update arrived
         if (reg.waiting && navigator.serviceWorker.controller) showBanner();
 
-        // Reload once new SW takes control
+        // Once the new SW takes control, reload so all cached assets are from the new version
         navigator.serviceWorker.addEventListener('controllerchange', () => location.reload());
     });
 }
