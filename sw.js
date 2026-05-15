@@ -1,4 +1,4 @@
-const CACHE = 'meeks-quoter-v11';
+const CACHE = 'meeks-quoter-v12';
 const ASSETS = [
     '/',
     '/index.html',

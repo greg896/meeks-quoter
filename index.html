@@ -209,14 +209,12 @@
         .li-empty { font-size: 13px; color: var(--muted); text-align: center; padding: 14px 0; }
         .tier { display: flex; justify-content: space-between; align-items: center; padding: 11px 14px; border-radius: 4px; margin-bottom: 7px; }
         .tier-std  { background: #fafafa; border: 1px solid #e5e5e5; }
-        .tier-disc { background: #fff5f5; border: 1px solid #fcc; }
-        .tier-cash { background: #f0fdf4; border: 2px solid #86efac; }
         .tier-lbl { font-size: 11px; font-weight: 600; line-height: 1.4; color: var(--navy); }
         .tier-sub { font-size: 10px; color: var(--muted); }
         .tier-amt { font-size: 19px; font-weight: 800; }
         .tier-std  .tier-amt { color: var(--navy); }
-        .tier-disc .tier-amt { color: var(--red); }
-        .tier-cash .tier-amt { color: var(--green); }
+        /* Cash discount note shown below the single price display */
+        .cash-note { font-size: 10px; color: var(--muted); font-style: italic; margin: 2px 0 8px; text-align: right; }
         .terms { background: #eef2f9; border: 1px solid var(--border); border-radius: 4px; padding: 11px 13px; font-size: 11px; color: var(--navy); line-height: 1.5; margin-bottom: 14px; }
         .action-btns { display: flex; flex-direction: column; gap: 9px; }
         .btn { display: flex; align-items: center; justify-content: center; gap: 7px; padding: 12px 18px; border: none; border-radius: 4px; font-family: inherit; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; width: 100%; }
@@ -432,17 +430,10 @@
                 <div class="line-items" id="lineItems"><div class="li-empty">No services selected yet</div></div>
                 <div>
                     <div class="tier tier-std">
-                        <div><div class="tier-lbl">Standard Price</div><div class="tier-sub">Includes 10% operational premium</div></div>
+                        <div><div class="tier-lbl">Total Price</div><div class="tier-sub">Includes 10% operational premium</div></div>
                         <div class="tier-amt" id="priceStd">$0.00</div>
                     </div>
-                    <div class="tier tier-disc">
-                        <div><div class="tier-lbl">In-House Service Discount</div><div class="tier-sub">5% off standard</div></div>
-                        <div class="tier-amt" id="priceDisc">$0.00</div>
-                    </div>
-                    <div class="tier tier-cash">
-                        <div><div class="tier-lbl">Cash Payment Price</div><div class="tier-sub">10% off standard</div></div>
-                        <div class="tier-amt" id="priceCash">$0.00</div>
-                    </div>
+                    <p class="cash-note">* Cash payments may receive a 10% discount.</p>
                 </div>
                 <div class="terms" style="margin-top:8px;"><strong>Payment Terms:</strong> 50% of quoted price due upfront. Remaining 50% due at job completion.</div>
                 <div class="action-btns">
@@ -779,8 +770,6 @@ function recalc() {
     }
     grandTotal = total;
     document.getElementById('priceStd').textContent  = money(total);
-    document.getElementById('priceDisc').textContent = money(total * 0.95); // 5% in-house discount
-    document.getElementById('priceCash').textContent = money(total * 0.90); // 10% cash discount
     const badge = document.getElementById('svcCount');
     const clearBtn = document.getElementById('clearAllBtn');
     if (badge) { badge.textContent = selected.length + ' selected'; badge.classList.toggle('visible', selected.length > 0); }
@@ -866,21 +855,15 @@ function buildPDF() {
     doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(10);
     doc.text('PRICING SUMMARY',16,y+5.5); y += 12;
 
-    doc.setFillColor(232,238,246); doc.setDrawColor(...lgray); doc.rect(12,y-4,PW-24,10,'F');
+    doc.setFillColor(232,238,246); doc.setDrawColor(...lgray); doc.rect(12,y-4,PW-24,12,'F');
     doc.setTextColor(...navy); doc.setFont('helvetica','normal'); doc.setFontSize(11);
-    doc.text('Standard Price (includes 10% operational premium):',16,y+2);
-    doc.setFont('helvetica','bold'); doc.text(money(grandTotal),PW-14,y+2,{align:'right'}); y += 12;
+    doc.text('Total Price (includes 10% operational premium):',16,y+2);
+    doc.setFont('helvetica','bold'); doc.setFontSize(13);
+    doc.text(money(grandTotal),PW-14,y+2,{align:'right'}); y += 16;
 
-    doc.setFillColor(252,237,237); doc.setDrawColor(...red); doc.roundedRect(12,y-4,PW-24,10,2,2,'FD');
-    doc.setTextColor(...red); doc.setFont('helvetica','normal'); doc.setFontSize(11);
-    doc.text('In-House Service Discount (5% off):',16,y+2);
-    doc.setFont('helvetica','bold'); doc.text(money(grandTotal*0.95),PW-14,y+2,{align:'right'}); y += 12;
-
-    doc.setFillColor(240,253,244); doc.setDrawColor(134,239,172);
-    doc.roundedRect(12,y-4,PW-24,14,2,2,'FD');
-    doc.setTextColor(...green); doc.setFont('helvetica','bold'); doc.setFontSize(13);
-    doc.text('Cash Payment Price (10% off):',16,y+4.5);
-    doc.text(money(grandTotal*0.90),PW-14,y+4.5,{align:'right'}); y += 22;
+    // Cash discount footnote in small italic text
+    doc.setFont('helvetica','italic'); doc.setFontSize(8); doc.setTextColor(...lgray);
+    doc.text('* Cash payments may receive a 10% discount.',PW-14,y,{align:'right'}); y += 10;
 
     if (y > 225) { doc.addPage(); y = 20; }
     doc.setFillColor(232,238,246); doc.setDrawColor(...navy);
@@ -1035,11 +1018,10 @@ ${SEP}
 ${itemLines.join('\n')}
 ${SEP}
 
-PRICING OPTIONS
+TOTAL PRICE
 ${SEP}
-  Standard Price:         ${money(grandTotal)}
-  In-House (5% off):      ${money(grandTotal * 0.95)}
-  Cash Price (10% off):   ${money(grandTotal * 0.90)}
+  ${money(grandTotal)}
+  * Cash payments may receive a 10% discount.
 ${SEP}
 
 PAYMENT TERMS
@@ -1122,7 +1104,7 @@ function saveQuote() {
         id: Date.now(), date: new Date().toLocaleDateString('en-US'),
         jobName: document.getElementById('jobName').value,
         client: { name: document.getElementById('clientName').value, email: document.getElementById('clientEmail').value, phone: document.getElementById('clientPhone').value, addr: document.getElementById('propertyAddress').value },
-        totals: { std: grandTotal, disc: grandTotal*0.95, cash: grandTotal*0.90 },
+        totals: { std: grandTotal },
         notes: document.getElementById('internalNotes').value,
         checkedMap, qtyMap, custState,
     };
